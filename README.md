@@ -1,4 +1,5 @@
 # genper
+https://travis-ci.com/estanislaoledesma/genper.svg?branch=master
 GenPer es un software de tomografía por microondas capaz de reconstruir imágenes de permitividades de dieléctricos a 
 partir de sus datos de dispersión.
 
