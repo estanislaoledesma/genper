@@ -25,6 +25,9 @@ Contiene todas las clases que conforman la red neuronal en sí.
 ### scripts
 Contiene los scripts para ejecutar cada parte del código por separado.
 
+### tests
+Contiene todos los archivos de tests.
+
 ### utils
 Contiene todas las clases que pueden ser reutilizadas a lo largo de todo el proyecto.
 
