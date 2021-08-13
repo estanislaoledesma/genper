@@ -6,14 +6,17 @@
             "wavelength": 0.75,
             "wave_incidence":
                 {
-                    "plane_wave": 0,
-                    "linear_wave": 1
+                    "linear_wave": 0,
+                    "plane_wave": 1
                 },
+            "wave_type": 0,
             "no_of_receivers": 32,
             "no_of_transmitters": 16,
             "noise_level": 0.05,
             "min_permittivity": 1.001,
-            "max_permittivity": 1.5
+            "max_permittivity": 1.5,
+            "receiver_radius": 3,
+            "transmitter_radius": 3
         },
     "images":
         {

@@ -6,6 +6,7 @@ import numpy as np
 from configs.constants import Constants
 from dataloader.circle_generator import CircleGenerator
 from dataloader.image import Image
+from utils.coordinates_converter import CoordinatesConverter
 
 
 class ImageGenerator:
@@ -25,6 +26,11 @@ class ImageGenerator:
         self.vacuum_permittivity = physics_parameters["vacuum_permittivity"]
         self.pixel_length = 2 * self.max_diameter / (self.no_of_pixels - 1)
         self.pixel_area = self.pixel_length ^ 2
+        self.receiver_radius = physics_parameters["receiver_radius"]
+        self.transmitter_radius = physics_parameters["transmitter_radius"]
+        self.wave_incidence = physics_parameters["wave_incidence"]
+        self.wave_type = physics_parameters["wave_type"]
+        self.impedance_of_free_space = physics_parameters["impedance_of_free_space"]
 
     def generate_images(self):
         electric_field = np.zeros((self.no_of_receivers, self.no_of_transmitters, self.no_of_images))
@@ -45,14 +51,40 @@ class ImageGenerator:
             complex_relative_permittivities = -1j * self.angular_frequency * (relative_permittivities - 1) \
                                               * self.vacuum_permittivity * self.pixel_area
             pixels_with_circle = relative_permittivities == 1
-            pixels_without_circle = np.where(pixels_with_circle == False)
             x_domain[pixels_with_circle] = []
+            x_domain = x_domain.T
             y_domain[pixels_with_circle] = []
+            y_domain = y_domain.T
             complex_relative_permittivities[pixels_with_circle] = []
+            complex_relative_permittivities = complex_relative_permittivities.T
             no_of_pixels_with_circle = max(np.shape(x_domain))
 
             receiver_angles = np.linspace(0, 2 * np.pi, self.no_of_receivers)
             receiver_angles = receiver_angles[:-1]
+            receiver_angles = receiver_angles.T
+            receiver_angles, receiver_radii = np.meshgrid(receiver_angles, self.receiver_radius)
+            receiver_angles = receiver_angles.T
+            receiver_radii = receiver_radii.T
+            x_receivers, y_receivers = CoordinatesConverter.pol2cart(receiver_angles, receiver_radii)
+
+            transmitter_angles = np.linspace(0, 2 * np.pi, self.no_of_receivers)
+            transmitter_angles = transmitter_angles[:-1]
+            transmitter_angles = transmitter_angles.T
+            if self.wave_type == self.wave_incidence ["plane_wave"]:
+                wave_number_x = self.wave_number * np.cos(transmitter_angles)
+                wave_number_y = self.wave_number * np.sin(transmitter_angles)
+                incident_electric_field = np.exp(1j * x_domain * wave_number_x + 1j * y_domain * wave_number_y)
+            else:
+                transmitter_angles, transmitter_radii = np.meshgrid(transmitter_angles, self.receiver_radius)
+                transmitter_angles = transmitter_angles.T
+                transmitter_radii = transmitter_radii.T
+                x_transmitters, y_transmitters = CoordinatesConverter.pol2cart(transmitter_angles, transmitter_radii)
+                circle_x, transmitter_x = np.meshgrid(x_domain, x_transmitters)
+                circle_y, transmitter_y = np.meshgrid(y_domain, y_transmitters)
+                dist_transmitter_circles = np.sqrt((circle_x - transmitter_x) ** 2 + (circle_y - transmitter_y) ** 2)
+                transposed_electric_field = 1j * self.wave_number * self.impedance_of_free_space * 1j / 4 
+
+
 
 
 
