@@ -20,5 +20,8 @@ class Image:
     def get_relative_permittivities(self):
         return self.relative_permittivities
 
+    def set_electric_field(self, electric_field):
+        self.electric_field = electric_field
 
-
+    def get_electric_field(self):
+        return self.electric_field
