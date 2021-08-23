@@ -40,32 +40,33 @@ class ElectricFieldGenerator:
             -1j * self.angular_frequency * (relative_permittivities - 1) * self.vacuum_permittivity * self.pixel_area
         pixels_with_circle = relative_permittivities != 1
         x_domain = x_domain[pixels_with_circle]
-        x_domain = x_domain.T
+        x_domain = np.atleast_2d(x_domain).T
         y_domain = y_domain[pixels_with_circle]
-        y_domain = y_domain.T
+        y_domain = np.atleast_2d(y_domain).T
         complex_relative_permittivities = complex_relative_permittivities[pixels_with_circle]
         complex_relative_permittivities = complex_relative_permittivities.T
         no_of_pixels_with_circle = max(np.shape(x_domain))
 
-        receiver_angles = np.linspace(0, 2 * np.pi, self.no_of_receivers)
+        receiver_angles = np.linspace(0, 2 * np.pi, self.no_of_receivers + 1)
         receiver_angles = receiver_angles[:-1]
-        receiver_angles = receiver_angles.T
+        receiver_angles = np.atleast_2d(receiver_angles).T
         receiver_angles, receiver_radii = np.meshgrid(receiver_angles, self.receiver_radius)
-        receiver_angles = receiver_angles.T
-        receiver_radii = receiver_radii.T
+        receiver_angles = np.atleast_2d(receiver_angles).T
+        receiver_radii = np.atleast_2d(receiver_radii).T
         x_receivers, y_receivers = CoordinatesConverter.pol2cart(receiver_radii, receiver_angles)
 
-        transmitter_angles = np.linspace(0, 2 * np.pi, self.no_of_transmitters)
+        transmitter_angles = np.linspace(0, 2 * np.pi, self.no_of_transmitters + 1)
         transmitter_angles = transmitter_angles[:-1]
-        transmitter_angles = transmitter_angles.T
+        transmitter_angles = np.atleast_2d(transmitter_angles).T
         if self.wave_type == self.wave_incidence["plane_wave"]:
             wave_number_x = self.wave_number * np.cos(transmitter_angles)
             wave_number_y = self.wave_number * np.sin(transmitter_angles)
-            incident_electric_field = np.exp(np.matmul(1j * x_domain, wave_number_x).T + np.matmul(1j * y_domain, wave_number_y).T)
+            incident_electric_field = np.exp(
+                np.matmul(1j * x_domain, wave_number_x).T + np.matmul(1j * y_domain, wave_number_y).T)
         else:
             transmitter_angles, transmitter_radii = np.meshgrid(transmitter_angles, self.receiver_radius)
-            transmitter_angles = transmitter_angles.T
-            transmitter_radii = transmitter_radii.T
+            transmitter_angles = np.atleast_2d(transmitter_angles).T
+            transmitter_radii = np.atleast_2d(transmitter_radii).T
             x_transmitters, y_transmitters = CoordinatesConverter.pol2cart(transmitter_radii, transmitter_angles)
             circle_x, transmitter_x = np.meshgrid(x_domain, x_transmitters)
             circle_y, transmitter_y = np.meshgrid(y_domain, y_transmitters)
@@ -87,9 +88,10 @@ class ElectricFieldGenerator:
                                hankel1(1, self.wave_number * self.equivalent_radius) +
                                4 * 1j / ((self.wave_number ** 2) * self.pixel_area))
         phi = phi + self.electric_field_coefficient * integral_2 * np.identity(no_of_pixels_with_circle)
-        total_electric_field = \
-            np.linalg.solve((np.identity(no_of_pixels_with_circle) - np.matmul(phi, np.diag(complex_relative_permittivities))),
-                            incident_electric_field)
+        total_electric_field_transmitters = \
+            np.linalg.solve(
+                (np.identity(no_of_pixels_with_circle) - np.matmul(phi, np.diag(complex_relative_permittivities))),
+                incident_electric_field)
 
         x_circles, x_receivers = np.meshgrid(x_domain, x_receivers)
         y_circles, y_receivers = np.meshgrid(y_domain, y_receivers)
@@ -97,5 +99,5 @@ class ElectricFieldGenerator:
         integral_receivers = \
             self.electric_field_coefficient * (1j / 4) * hankel1(0, self.wave_number * dist_receivers_circles)
         total_electric_field = np.matmul(np.matmul(integral_receivers, np.diag(complex_relative_permittivities)),
-                                         total_electric_field)
+                                         total_electric_field_transmitters)
         return ElectricField(total_electric_field)
