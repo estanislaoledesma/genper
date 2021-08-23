@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Image:
@@ -25,3 +26,7 @@ class Image:
 
     def get_electric_field(self):
         return self.electric_field
+
+    def plot(self):
+        plt.imshow(self.relative_permittivities, cmap='hot', interpolation='nearest')
+        plt.show()

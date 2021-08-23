@@ -46,6 +46,8 @@ class ImageGenerator:
             electric_field = self.electric_field_generator.generate_electric_field(image, x_domain, y_domain)
             image.set_electric_field(electric_field)
             images.append(image)
+            if image_i % 50 == 0:
+                image.plot()
 
         images = np.array(images)
         images_file = "images.h5"
