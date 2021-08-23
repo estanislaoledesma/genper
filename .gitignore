@@ -130,3 +130,6 @@ dmypy.json
 
 # Idea
 .idea
+
+# H5 files
+*.h5
