@@ -32,6 +32,7 @@ class ImageGenerator:
 
     def generate_images(self):
         images = []
+        plotting = False
 
         LOG.info("%d images with random number of circles (between 1 and 3) will be generated", self.no_of_images)
         for image_i in range(self.no_of_images):
@@ -47,7 +48,7 @@ class ImageGenerator:
             image.set_electric_field(electric_field)
             images.append(image)
             if image_i % 50 == 0:
-                image.plot()
+                image.plot(image_i)
 
         images = np.array(images)
         images_file = "images.h5"

@@ -22,7 +22,7 @@ class CircleGenerator:
         circles = []
 
         for i in range(no_of_circles):
-            radius = self.min_radius + (self.max_radius - self.max_radius) * np.random.uniform()
+            radius = self.min_radius + (self.max_radius - self.min_radius) * np.random.uniform()
             center_range = [-1 + radius + 0.05, 1 - radius - 0.05]
             center_x = center_range[0] + (center_range[1] - center_range[0]) * np.random.uniform()
             center_y = center_range[0] + (center_range[1] - center_range[0]) * np.random.uniform()

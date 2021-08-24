@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 class Image:
@@ -27,6 +29,9 @@ class Image:
     def get_electric_field(self):
         return self.electric_field
 
-    def plot(self):
-        plt.imshow(self.relative_permittivities, cmap='hot', interpolation='nearest')
-        plt.show()
+    def plot(self, image_i):
+        plt.close("all")
+        ax = plt.axes()
+        sns.heatmap(self.relative_permittivities, cmap="copper", cbar_kws={"label": "Permitividades relativas"},)
+        ax.set_title("Imagen " + str(image_i) + " que contiene " + str(len(self.circles)) + " círculo/s")
+        plt.pause(0.01)
