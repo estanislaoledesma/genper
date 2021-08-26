@@ -1,5 +1,5 @@
 # genper
-https://travis-ci.com/estanislaoledesma/genper.svg?branch=master
+[![Build Status](https://app.travis-ci.com/estanislaoledesma/genper.svg?branch=master)](https://app.travis-ci.com/estanislaoledesma/genper)
 GenPer es un software de tomografía por microondas capaz de reconstruir imágenes de permitividades de dieléctricos a 
 partir de sus datos de dispersión.
 
@@ -7,6 +7,9 @@ partir de sus datos de dispersión.
 
 ### configs
 Contiene todos los hiperparámetros, rutas de archivos y cualquier cosa configurable del proyecto.
+
+### dataloader
+Contiene todos los archivos generados durante el procesamiento del software.
 
 ### dataloader
 Contiene todas las clases para carga y preprocesamiento de datos.
@@ -20,11 +23,19 @@ Contiene todas las clases encargadas de evaluar el rendimiento y exactitud del m
 ### executor
 Contiene todas las clases encargadas de entrenar el modelo, tanto en CPU como GPU.
 
+### logs
+Contiene los logs de cada ejecución.
+
 ### model
 Contiene todas las clases que conforman la red neuronal en sí.
 
 ### scripts
 Contiene los scripts para ejecutar cada parte del código por separado.
+
+#### generate_images.py
+Mediante este script se llama al generador de imágenes, el cual generará un archivo images.h5 dentro de data/image_generator,  
+el cual será utilizado por el preprocesador. También generará los correspondientes logs dentro de logs/image_generator junto 
+con algunos archivos png de muestra de las imágenes generadas.
 
 ### tests
 Contiene todos los archivos de tests.

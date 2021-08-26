@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+from datetime import datetime
 
 import numpy as np
 
@@ -11,11 +12,11 @@ from dataloader.electric_field_generator import ElectricFieldGenerator
 from dataloader.image import Image
 import deepdish as dd
 
-ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 LOG = Logger.get_root_logger(
     os.environ.get('ROOT_LOGGER', 'root'),
-    filename=os.path.join(ROOT_PATH, 'output.log')
+    filename=os.path.join(ROOT_PATH + "/logs/image_generator/", '{:%Y-%m-%d}.log'.format(datetime.now()))
 )
 
 
@@ -32,7 +33,6 @@ class ImageGenerator:
 
     def generate_images(self):
         images = []
-        plotting = False
 
         LOG.info("%d images with random number of circles (between 1 and 3) will be generated", self.no_of_images)
         for image_i in range(self.no_of_images):
@@ -48,9 +48,9 @@ class ImageGenerator:
             image.set_electric_field(electric_field)
             images.append(image)
             if image_i % 50 == 0:
-                image.plot(image_i)
+                image.plot(image_i, ROOT_PATH + "/logs/image_generator/image_{}".format(image_i))
 
         images = np.array(images)
-        images_file = "images.h5"
+        images_file = ROOT_PATH + "/data/image_generator/images.h5"
         LOG.info("Saving %d images to file %s", self.no_of_images, images_file)
         dd.io.save(images_file, images)

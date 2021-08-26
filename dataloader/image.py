@@ -29,9 +29,10 @@ class Image:
     def get_electric_field(self):
         return self.electric_field
 
-    def plot(self, image_i):
+    def plot(self, image_i, path):
         plt.close("all")
         ax = plt.axes()
         sns.heatmap(self.relative_permittivities, cmap="copper", cbar_kws={"label": "Permitividades relativas"},)
         ax.set_title("Imagen " + str(image_i) + " que contiene " + str(len(self.circles)) + " círculo/s")
         plt.pause(0.01)
+        plt.savefig(path)
