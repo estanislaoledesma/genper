@@ -130,3 +130,9 @@ dmypy.json
 
 # Idea
 .idea
+
+# Logs
+logs/image_generator/*
+
+# Data
+data/image_generator/*
