@@ -55,26 +55,7 @@ class ElectricFieldGenerator:
         receiver_radii = np.atleast_2d(receiver_radii).T
         x_receivers, y_receivers = CoordinatesConverter.pol2cart(receiver_radii, receiver_angles)
 
-        transmitter_angles = np.linspace(0, 2 * np.pi, self.no_of_transmitters + 1)
-        transmitter_angles = transmitter_angles[:-1]
-        transmitter_angles = np.atleast_2d(transmitter_angles).T
-        if self.wave_type == self.wave_incidence["plane_wave"]:
-            wave_number_x = self.wave_number * np.cos(transmitter_angles)
-            wave_number_y = self.wave_number * np.sin(transmitter_angles)
-            incident_electric_field = np.exp(
-                np.matmul(1j * x_domain, wave_number_x).T + np.matmul(1j * y_domain, wave_number_y).T)
-        else:
-            transmitter_angles, transmitter_radii = np.meshgrid(transmitter_angles, self.receiver_radius)
-            transmitter_angles = np.atleast_2d(transmitter_angles).T
-            transmitter_radii = np.atleast_2d(transmitter_radii).T
-            x_transmitters, y_transmitters = CoordinatesConverter.pol2cart(transmitter_radii, transmitter_angles)
-            circle_x, transmitter_x = np.meshgrid(x_domain, x_transmitters)
-            circle_y, transmitter_y = np.meshgrid(y_domain, y_transmitters)
-            dist_transmitter_circles = np.sqrt((circle_x - transmitter_x) ** 2 + (circle_y - transmitter_y) ** 2)
-            transposed_electric_field = \
-                1j * self.wave_number * self.impedance_of_free_space * 1j / 4 * \
-                hankel1(0, self.wave_number * dist_transmitter_circles)
-            incident_electric_field = transposed_electric_field.T
+        incident_electric_field = self.generate_incident_electric_field(x_domain, y_domain)
 
         x_domain_with_circles, x_domain_with_circles_2 = np.meshgrid(x_domain, x_domain)
         y_domain_with_circles, y_domain_with_circles_2 = np.meshgrid(y_domain, y_domain)
@@ -101,3 +82,28 @@ class ElectricFieldGenerator:
         total_electric_field = np.matmul(np.matmul(integral_receivers, np.diag(complex_relative_permittivities)),
                                          total_electric_field_transmitters)
         return ElectricField(total_electric_field)
+
+    def generate_incident_electric_field(self, x_domain, y_domain):
+        transmitter_angles = np.linspace(0, 2 * np.pi, self.no_of_transmitters + 1)
+        transmitter_angles = transmitter_angles[:-1]
+        transmitter_angles = np.atleast_2d(transmitter_angles).T
+        if self.wave_type == self.wave_incidence["plane_wave"]:
+            wave_number_x = self.wave_number * np.cos(transmitter_angles)
+            wave_number_y = self.wave_number * np.sin(transmitter_angles)
+            incident_electric_field = np.exp(
+                np.matmul(1j * x_domain, wave_number_x).T + np.matmul(1j * y_domain, wave_number_y).T)
+        else:
+            transmitter_angles, transmitter_radii = np.meshgrid(transmitter_angles, self.receiver_radius)
+            transmitter_angles = np.atleast_2d(transmitter_angles).T
+            transmitter_radii = np.atleast_2d(transmitter_radii).T
+            x_transmitters, y_transmitters = CoordinatesConverter.pol2cart(transmitter_radii, transmitter_angles)
+            circle_x, transmitter_x = np.meshgrid(x_domain, x_transmitters)
+            circle_y, transmitter_y = np.meshgrid(y_domain, y_transmitters)
+            dist_transmitter_circles = np.sqrt((circle_x - transmitter_x) ** 2 + (circle_y - transmitter_y) ** 2)
+            transposed_electric_field = \
+                1j * self.wave_number * self.impedance_of_free_space * 1j / 4 * \
+                hankel1(0, self.wave_number * dist_transmitter_circles)
+            incident_electric_field = transposed_electric_field.T
+
+        return incident_electric_field
+
