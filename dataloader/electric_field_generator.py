@@ -47,14 +47,7 @@ class ElectricFieldGenerator:
         complex_relative_permittivities = complex_relative_permittivities.T
         no_of_pixels_with_circle = max(np.shape(x_domain))
 
-        receiver_angles = np.linspace(0, 2 * np.pi, self.no_of_receivers + 1)
-        receiver_angles = receiver_angles[:-1]
-        receiver_angles = np.atleast_2d(receiver_angles).T
-        receiver_angles, receiver_radii = np.meshgrid(receiver_angles, self.receiver_radius)
-        receiver_angles = np.atleast_2d(receiver_angles).T
-        receiver_radii = np.atleast_2d(receiver_radii).T
-        x_receivers, y_receivers = CoordinatesConverter.pol2cart(receiver_radii, receiver_angles)
-
+        x_receivers, y_receivers, _ = self.get_antennas_coordinates(self.no_of_receivers, self.receiver_radius)
         incident_electric_field = self.generate_incident_electric_field(x_domain, y_domain)
 
         x_domain_with_circles, x_domain_with_circles_2 = np.meshgrid(x_domain, x_domain)
@@ -84,19 +77,14 @@ class ElectricFieldGenerator:
         return ElectricField(total_electric_field)
 
     def generate_incident_electric_field(self, x_domain, y_domain):
-        transmitter_angles = np.linspace(0, 2 * np.pi, self.no_of_transmitters + 1)
-        transmitter_angles = transmitter_angles[:-1]
-        transmitter_angles = np.atleast_2d(transmitter_angles).T
+        x_transmitters, y_transmitters, transmitter_angles = \
+            self.get_antennas_coordinates(self.no_of_transmitters, self.transmitter_radius)
         if self.wave_type == self.wave_incidence["plane_wave"]:
             wave_number_x = self.wave_number * np.cos(transmitter_angles)
             wave_number_y = self.wave_number * np.sin(transmitter_angles)
             incident_electric_field = np.exp(
                 np.matmul(1j * x_domain, wave_number_x).T + np.matmul(1j * y_domain, wave_number_y).T)
         else:
-            transmitter_angles, transmitter_radii = np.meshgrid(transmitter_angles, self.receiver_radius)
-            transmitter_angles = np.atleast_2d(transmitter_angles).T
-            transmitter_radii = np.atleast_2d(transmitter_radii).T
-            x_transmitters, y_transmitters = CoordinatesConverter.pol2cart(transmitter_radii, transmitter_angles)
             circle_x, transmitter_x = np.meshgrid(x_domain, x_transmitters)
             circle_y, transmitter_y = np.meshgrid(y_domain, y_transmitters)
             dist_transmitter_circles = np.sqrt((circle_x - transmitter_x) ** 2 + (circle_y - transmitter_y) ** 2)
@@ -106,4 +94,50 @@ class ElectricFieldGenerator:
             incident_electric_field = transposed_electric_field.T
 
         return incident_electric_field
+
+    @staticmethod
+    def get_antennas_coordinates(no_of_antennas, antenna_radius):
+        antenna_angles_polar = np.linspace(0, 2 * np.pi, no_of_antennas + 1)
+        antenna_angles_polar = antenna_angles_polar[:-1]
+        antenna_angles_polar = np.atleast_2d(antenna_angles_polar).T
+        antenna_angles, antenna_radii = np.meshgrid(antenna_angles_polar, antenna_radius)
+        antenna_angles = np.atleast_2d(antenna_angles).T
+        antenna_radii = np.atleast_2d(antenna_radii).T
+        x_antennas, y_antennas = CoordinatesConverter.pol2cart(antenna_radii, antenna_angles)
+        return x_antennas, y_antennas, antenna_angles_polar
+
+    def generate_preprocessing_electric_field(self):
+        image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
+        x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
+        total_no_of_pixels = np.shape(x_domain)[0] * np.shape(x_domain)[1]
+
+        x_receivers, y_receivers, _ = self.get_antennas_coordinates(self.no_of_receivers, self.receiver_radius)
+        incident_electric_field = self.generate_incident_electric_field(x_domain, y_domain)
+
+        x_domain = np.atleast_2d(x_domain).T
+        y_domain = np.atleast_2d(y_domain).T
+
+        # GS matrix
+        x_domain_tmp, x_receivers = np.meshgrid(x_domain, x_receivers)
+        y_domain_tmp, y_receivers = np.meshgrid(y_domain, y_receivers)
+        dist_domain_receivers = np.sqrt((x_domain_tmp - x_receivers) ** 2 + (y_domain_tmp - y_receivers) ** 2)
+        gs_matrix = 1j * self.wave_number * self.impedance_of_free_space * \
+                    (1j / 4) * hankel1(0, self.wave_number * dist_domain_receivers)
+
+        # GD matrix
+        x_domain_cell, x_domain_cell_2 = np.meshgrid(x_domain, x_domain)
+        x_dist_between_pixels = (x_domain_cell - x_domain_cell_2) ** 2
+        y_domain_cell, y_domain_cell_2 = np.meshgrid(y_domain, y_domain)
+        y_dist_between_pixels = (y_domain_cell - y_domain_cell_2) ** 2
+        dist_between_pixels = np.sqrt(x_dist_between_pixels + y_dist_between_pixels)
+        dist_between_pixels = dist_between_pixels + np.identity(total_no_of_pixels)
+        phi = 1j * self.wave_number * self.impedance_of_free_space * \
+              (1j / 4) * hankel1(0, self.wave_number * dist_between_pixels)
+        diag_zero = np.ones(total_no_of_pixels) - np.identity(total_no_of_pixels)
+        phi = phi * diag_zero
+        integral_receivers = (1j / 4) * (2 / (self.wave_number * self.equivalent_radius) *
+                               hankel1(1, self.wave_number * self.equivalent_radius) +
+                               4 * 1j / ((self.wave_number ** 2) * self.pixel_area))
+        gs_matrix = phi + self.electric_field_coefficient * integral_receivers * np.identity(total_no_of_pixels)
+
 
