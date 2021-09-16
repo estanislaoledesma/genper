@@ -36,7 +36,7 @@ class ImageGenerator:
 
         LOG.info("%d images with random number of circles (between 1 and 3) will be generated", self.no_of_images)
         for image_i in range(self.no_of_images):
-            LOG.info("Generating image no. %d", image_i)
+            LOG.info("Generating image no. %d/%d", image_i, self.no_of_images)
             image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
             x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
 

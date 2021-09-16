@@ -1,11 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+from datetime import datetime
+
 import numpy as np
 from numpy import pi
 from scipy.special import hankel1
+import deepdish as dd
 
 from configs.constants import Constants
+from configs.logger import Logger
 from dataloader.electric_field_generator import ElectricFieldGenerator
+
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+LOG = Logger.get_root_logger(
+    os.environ.get('ROOT_LOGGER', 'root'),
+    filename=os.path.join(ROOT_PATH + "/logs/preprocessor/", '{:%Y-%m-%d}.log'.format(datetime.now()))
+)
 
 
 class Preprocessor:
@@ -28,25 +40,34 @@ class Preprocessor:
         self.receiver_radius = physics_parameters["receiver_radius"]
         self.electric_field_generator = ElectricFieldGenerator()
         self.noise_level = physics_parameters["noise_level"]
+        self.angular_frequency = self.wave_number * physics_parameters["speed_of_light"]
+        self.vacuum_permittivity = physics_parameters["vacuum_permittivity"]
+        images_path = ROOT_PATH + "/data/image_generator/images.h5"
+        LOG.info("Loading images from file %s", images_path)
+        self.images = dd.io.load(images_path)
+        LOG.info("%d images loaded", np.size(self.images))
 
-    def preprocess(self, images):
+    def preprocess(self):
         image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
         x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
         incident_electric_field = self.electric_field_generator.generate_incident_electric_field(x_domain, y_domain)
 
-        x_domain = np.atleast_2d(x_domain).T
-        y_domain = np.atleast_2d(y_domain).T
+        x_domain = np.atleast_2d(x_domain.flatten("F")).T
+        y_domain = np.atleast_2d(y_domain.flatten("F")).T
 
         gs_matrix = self.generate_gs_matrix(x_domain, y_domain)
         gd_matrix = self.generate_gd_matrix(x_domain, y_domain)
 
-        for image in images:
+        image_i = 1
+        for image in self.images:
+            LOG.info("Preprocessing image no. %d/%d", image_i, np.size(self.images))
             electric_field = image.get_electric_field()
             rand_real = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
             rand_imag = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
             gaussian_electric_field = np.matmul(1 / np.sqrt(2) *
                                                 np.sqrt(1 / self.no_of_receivers / self.no_of_transmitters) *
-                                                np.linalg.norm(np.atleast_2d(electric_field).T, 2) * self.noise_level,
+                                                np.linalg.norm(np.atleast_2d(electric_field.flatten("F")).T, 2) *
+                                                self.noise_level,
                                                 (rand_real + 1j * rand_imag))
             noisy_electric_field = electric_field + gaussian_electric_field
 
@@ -57,6 +78,16 @@ class Preprocessor:
                 induced_current[:, i] = gamma * (gs_matrix * noisy_electric_field[:, i])
 
             total_electric_field_init = incident_electric_field + np.matmul(gd_matrix, induced_current)
+            min_square_num = np.sum(np.conj(total_electric_field_init) * induced_current, axis=1)
+            min_square_den = np.sum(np.conj(total_electric_field_init) * total_electric_field_init, axis=1)
+            epsilon = np.imag(min_square_num / min_square_den) / \
+                      (-self.angular_frequency * self.vacuum_permittivity * self.pixel_length ** 2) + 1
+            permittivities = np.reshape(epsilon, (self.no_of_pixels, self.no_of_pixels))
+            image.set_preprocessor_guess(permittivities)
+
+        images_file = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
+        LOG.info("Saving %d preprocessed images to file %s", np.size(self.images), images_file)
+        dd.io.save(images_file, self.images)
 
     def generate_gs_matrix(self, x_domain, y_domain):
         x_receivers, y_receivers, _ = \
@@ -75,16 +106,15 @@ class Preprocessor:
         y_domain_cell, y_domain_cell_2 = np.meshgrid(y_domain, y_domain)
         y_dist_between_pixels = (y_domain_cell - y_domain_cell_2) ** 2
         dist_between_pixels = np.sqrt(x_dist_between_pixels + y_dist_between_pixels)
-        dist_between_pixels = dist_between_pixels + np.identity(total_no_of_pixels)
+        dist_between_pixels = dist_between_pixels + np.identity(self.total_no_of_pixels)
 
         phi = 1j * self.wave_number * self.impedance_of_free_space * \
               (1j / 4) * hankel1(0, self.wave_number * dist_between_pixels)
-        diag_zero = np.ones(total_no_of_pixels) - np.identity(total_no_of_pixels)
+        diag_zero = np.ones(self.total_no_of_pixels) - np.identity(self.total_no_of_pixels)
         phi = phi * diag_zero
         integral_receivers = (1j / 4) * (2 / (self.wave_number * self.equivalent_radius) *
                                          hankel1(1, self.wave_number * self.equivalent_radius) +
                                          4 * 1j / ((self.wave_number ** 2) * self.pixel_area))
 
-        gs_matrix = phi + self.electric_field_coefficient * integral_receivers * np.identity(total_no_of_pixels)
+        gs_matrix = phi + self.electric_field_coefficient * integral_receivers * np.identity(self.total_no_of_pixels)
         return gs_matrix
-

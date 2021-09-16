@@ -36,3 +36,9 @@ class Image:
         ax.set_title("Imagen " + str(image_i) + " que contiene " + str(len(self.circles)) + " círculo/s")
         plt.pause(0.01)
         plt.savefig(path)
+
+    def set_preprocessor_guess(self, preprocessor_guess):
+        self.preprocessor_guess = preprocessor_guess
+
+    def get_preprocessor_guess(self):
+        return self.preprocessor_guess

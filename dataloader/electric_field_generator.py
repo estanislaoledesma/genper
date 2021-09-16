@@ -40,9 +40,9 @@ class ElectricFieldGenerator:
             -1j * self.angular_frequency * (relative_permittivities - 1) * self.vacuum_permittivity * self.pixel_area
         pixels_with_circle = relative_permittivities != 1
         x_domain = x_domain[pixels_with_circle]
-        x_domain = np.atleast_2d(x_domain).T
+        x_domain = np.atleast_2d(x_domain.flatten("F")).T
         y_domain = y_domain[pixels_with_circle]
-        y_domain = np.atleast_2d(y_domain).T
+        y_domain = np.atleast_2d(y_domain.flatten("F")).T
         complex_relative_permittivities = complex_relative_permittivities[pixels_with_circle]
         complex_relative_permittivities = complex_relative_permittivities.T
 
@@ -85,10 +85,11 @@ class ElectricFieldGenerator:
     def get_antennas_coordinates(no_of_antennas, antenna_radius):
         antenna_angles_polar = np.linspace(0, 2 * np.pi, no_of_antennas + 1)
         antenna_angles_polar = antenna_angles_polar[:-1]
-        antenna_angles_polar = np.atleast_2d(antenna_angles_polar).T
+        antenna_angles_polar = np.atleast_2d(antenna_angles_polar.flatten("F")).T
         antenna_angles, antenna_radii = np.meshgrid(antenna_angles_polar, antenna_radius)
-        antenna_angles = np.atleast_2d(antenna_angles).T
-        antenna_radii = np.atleast_2d(antenna_radii).T
+        antenna_angles = np.atleast_2d(antenna_angles.flatten("F")).T
+        antenna_angles = np.atleast_2d(antenna_angles.flatten("F")).T
+        antenna_radii = np.atleast_2d(antenna_radii.flatten("F")).T
         x_antennas, y_antennas = CoordinatesConverter.pol2cart(antenna_radii, antenna_angles)
         return x_antennas, y_antennas, antenna_angles_polar
 
