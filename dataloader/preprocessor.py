@@ -61,21 +61,22 @@ class Preprocessor:
         image_i = 1
         for image in self.images:
             LOG.info("Preprocessing image no. %d/%d", image_i, np.size(self.images))
-            electric_field = image.get_electric_field()
+            electric_field = image.get_electric_field().get_electric_field()
             rand_real = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
             rand_imag = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
-            gaussian_electric_field = np.matmul(1 / np.sqrt(2) *
-                                                np.sqrt(1 / self.no_of_receivers / self.no_of_transmitters) *
-                                                np.linalg.norm(np.atleast_2d(electric_field.flatten("F")).T, 2) *
-                                                self.noise_level,
-                                                (rand_real + 1j * rand_imag))
+            electric_field_for_norm = np.atleast_2d(electric_field.flatten("F")).T
+            gaussian_electric_field = 1 / np.sqrt(2) * np.sqrt(1 / self.no_of_receivers / self.no_of_transmitters) * \
+                                      np.linalg.norm(electric_field_for_norm, 2) * \
+                                      self.noise_level * (rand_real + 1j * rand_imag)
             noisy_electric_field = electric_field + gaussian_electric_field
 
             induced_current = np.zeros((self.total_no_of_pixels, self.no_of_transmitters))
-            for i in self.no_of_transmitters:
-                gamma = np.linalg.solve(np.matmul(gs_matrix, gs_matrix * noisy_electric_field[:, i]),
-                                        noisy_electric_field[:, i])
-                induced_current[:, i] = gamma * (gs_matrix * noisy_electric_field[:, i])
+            for i in range(self.no_of_transmitters):
+                first_operand = np.matmul(gs_matrix, np.matmul(gs_matrix.conj().T, np.atleast_2d(noisy_electric_field[:, i]).T))
+                second_operand = np.atleast_2d(noisy_electric_field[:, i]).T
+                gamma = np.linalg.lstsq(first_operand,
+                                        second_operand)
+                induced_current[:, i] = np.matmul(gamma, (np.matmul(gs_matrix, np.atleast_2d(noisy_electric_field[:, i]).T)))
 
             total_electric_field_init = incident_electric_field + np.matmul(gd_matrix, induced_current)
             min_square_num = np.sum(np.conj(total_electric_field_init) * induced_current, axis=1)
