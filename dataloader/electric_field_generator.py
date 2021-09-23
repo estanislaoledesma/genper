@@ -71,8 +71,8 @@ class ElectricFieldGenerator:
             incident_electric_field = np.exp(
                 np.matmul(1j * x_domain, wave_number_x).T + np.matmul(1j * y_domain, wave_number_y).T)
         else:
-            circle_x, transmitter_x = np.meshgrid(x_domain, x_transmitters)
-            circle_y, transmitter_y = np.meshgrid(y_domain, y_transmitters)
+            circle_x, transmitter_x = np.meshgrid(x_domain.T, x_transmitters.T)
+            circle_y, transmitter_y = np.meshgrid(y_domain.T, y_transmitters.T)
             dist_transmitter_circles = np.sqrt((circle_x - transmitter_x) ** 2 + (circle_y - transmitter_y) ** 2)
             transposed_electric_field = \
                 1j * self.wave_number * self.impedance_of_free_space * 1j / 4 * \

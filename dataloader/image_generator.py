@@ -22,35 +22,52 @@ LOG = Logger.get_root_logger(
 
 class ImageGenerator:
 
-    def __init__(self):
+    def __init__(self, test):
         basic_parameters = Constants.get_basic_parameters()
         images_parameters = basic_parameters["images"]
-        self.no_of_images = images_parameters["no_of_images"]
+        if test:
+            LOG.info("Starting image generator in testing mode")
+            self.no_of_images = 5
+        else:
+            LOG.info("Starting image generator in standard mode")
+            self.no_of_images = images_parameters["no_of_images"]
         self.max_diameter = images_parameters["max_diameter"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
         self.circle_generator = CircleGenerator()
         self.electric_field_generator = ElectricFieldGenerator()
 
-    def generate_images(self):
+    def generate_images(self, test):
         images = []
 
-        LOG.info("%d images with random number of circles (between 1 and 3) will be generated", self.no_of_images)
+        if test:
+            LOG.info("%d images with 2 circles will be generated", self.no_of_images)
+        else:
+            LOG.info("%d images with random number of circles (between 1 and 3) will be generated", self.no_of_images)
+
         for image_i in range(self.no_of_images):
             LOG.info("Generating image no. %d/%d", image_i, self.no_of_images)
             image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
             x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
 
-            no_of_circles = int(np.ceil((3 * np.random.uniform()) + 1e-2))
+            if test:
+                no_of_circles = 2
+            else:
+                no_of_circles = int(np.ceil((3 * np.random.uniform()) + 1e-2))
             LOG.info("The image will have %d circles", no_of_circles)
-            circles = self.circle_generator.generate_circles(no_of_circles)
+            circles = self.circle_generator.generate_circles(no_of_circles, test, image_i)
             image = Image(x_domain, y_domain, circles)
             electric_field = self.electric_field_generator.generate_electric_field(image, x_domain, y_domain)
             image.set_electric_field(electric_field)
             images.append(image)
-            if image_i % 50 == 0:
-                image.plot(image_i, ROOT_PATH + "/logs/image_generator/image_{}".format(image_i))
+            if image_i % 50 == 0 and not test:
+                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/image_{}".format(image_i))
+            if test:
+                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/test/image_{}".format(image_i))
 
         images = np.array(images)
-        images_file = ROOT_PATH + "/data/image_generator/images.h5"
+        if test:
+            images_file = ROOT_PATH + "/data/image_generator/test/images.h5"
+        else:
+            images_file = ROOT_PATH + "/data/image_generator/images.h5"
         LOG.info("Saving %d images to file %s", self.no_of_images, images_file)
         dd.io.save(images_file, images)

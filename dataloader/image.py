@@ -42,3 +42,14 @@ class Image:
 
     def get_preprocessor_guess(self):
         return self.preprocessor_guess
+
+    def plot_with_preprocessor_guess(self, image_i, path):
+        plt.close("all")
+        figure, axis = plt.subplots(1, 2)
+        figure.suptitle("Imagen {}".format(image_i))
+        sns.heatmap(ax=axis[0], data=self.relative_permittivities, cmap="copper", cbar_kws={"label": "Permitividades relativas"},)
+        axis[0].set_title("Imagen original")
+        sns.heatmap(ax=axis[1], data=self.preprocessor_guess, cmap="copper", cbar_kws={"label": "Permitividades relativas"}, )
+        axis[1].set_title("Imagen obtenida del preprocesador")
+        plt.pause(0.01)
+        plt.savefig(path)

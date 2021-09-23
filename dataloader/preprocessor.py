@@ -22,7 +22,7 @@ LOG = Logger.get_root_logger(
 
 class Preprocessor:
 
-    def __init__(self):
+    def __init__(self, test):
         basic_parameters = Constants.get_basic_parameters()
         physics_parameters = basic_parameters["physics"]
         images_parameters = basic_parameters["images"]
@@ -42,12 +42,17 @@ class Preprocessor:
         self.noise_level = physics_parameters["noise_level"]
         self.angular_frequency = self.wave_number * physics_parameters["speed_of_light"]
         self.vacuum_permittivity = physics_parameters["vacuum_permittivity"]
-        images_path = ROOT_PATH + "/data/image_generator/images.h5"
+        if test:
+            LOG.info("Starting preprocessor in testing mode")
+            images_path = ROOT_PATH + "/data/image_generator/test/images.h5"
+        else:
+            LOG.info("Starting preprocessor in standard mode")
+            images_path = ROOT_PATH + "/data/image_generator/images.h5"
         LOG.info("Loading images from file %s", images_path)
         self.images = dd.io.load(images_path)
         LOG.info("%d images loaded", np.size(self.images))
 
-    def preprocess(self):
+    def preprocess(self, test):
         image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
         x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
         incident_electric_field = self.electric_field_generator.generate_incident_electric_field(x_domain, y_domain)
@@ -58,35 +63,45 @@ class Preprocessor:
         gs_matrix = self.generate_gs_matrix(x_domain, y_domain)
         gd_matrix = self.generate_gd_matrix(x_domain, y_domain)
 
-        image_i = 1
+        image_i = 0
         for image in self.images:
             LOG.info("Preprocessing image no. %d/%d", image_i, np.size(self.images))
             electric_field = image.get_electric_field().get_electric_field()
-            rand_real = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
-            rand_imag = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
+            rand_real, rand_imag = self.get_rand_real_imag(test)
             electric_field_for_norm = np.atleast_2d(electric_field.flatten("F")).T
             gaussian_electric_field = 1 / np.sqrt(2) * np.sqrt(1 / self.no_of_receivers / self.no_of_transmitters) * \
                                       np.linalg.norm(electric_field_for_norm, 2) * \
                                       self.noise_level * (rand_real + 1j * rand_imag)
             noisy_electric_field = electric_field + gaussian_electric_field
 
-            induced_current = np.zeros((self.total_no_of_pixels, self.no_of_transmitters))
+            induced_current = np.zeros((self.total_no_of_pixels, self.no_of_transmitters), dtype=complex)
             for i in range(self.no_of_transmitters):
                 first_operand = np.matmul(gs_matrix, np.matmul(gs_matrix.conj().T, np.atleast_2d(noisy_electric_field[:, i]).T))
                 second_operand = np.atleast_2d(noisy_electric_field[:, i]).T
-                gamma = np.linalg.lstsq(first_operand,
-                                        second_operand)
-                induced_current[:, i] = np.matmul(gamma, (np.matmul(gs_matrix, np.atleast_2d(noisy_electric_field[:, i]).T)))
+                gamma = np.linalg.lstsq(first_operand, second_operand, rcond=None)[0][0]
+                i_induced_current = gamma * np.matmul(gs_matrix.conj().T, np.atleast_2d(noisy_electric_field[:, i]).T)
+                induced_current[:, i] = i_induced_current.flatten()
 
             total_electric_field_init = incident_electric_field + np.matmul(gd_matrix, induced_current)
             min_square_num = np.sum(np.conj(total_electric_field_init) * induced_current, axis=1)
             min_square_den = np.sum(np.conj(total_electric_field_init) * total_electric_field_init, axis=1)
             epsilon = np.imag(min_square_num / min_square_den) / \
                       (-self.angular_frequency * self.vacuum_permittivity * self.pixel_length ** 2) + 1
-            permittivities = np.reshape(epsilon, (self.no_of_pixels, self.no_of_pixels))
+            permittivities = np.reshape(epsilon, (self.no_of_pixels, self.no_of_pixels), order="F")
             image.set_preprocessor_guess(permittivities)
+            if image_i % 50 == 0 and not test:
+                image.plot_with_preprocessor_guess(image_i, ROOT_PATH +
+                                                   "/logs/preprocessor/preprocessed_images/preprocessed_image_{}".format(image_i))
+            if test:
+                image.plot_with_preprocessor_guess(image_i, ROOT_PATH +
+                                                   "/logs/preprocessor/preprocessed_images/test/preprocessed_image_{}".format(
+                                                       image_i))
+            image_i += 1
 
-        images_file = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
+        if test:
+            images_file = ROOT_PATH + "/data/preprocessor/test/preprocessed_images.h5"
+        else:
+            images_file = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
         LOG.info("Saving %d preprocessed images to file %s", np.size(self.images), images_file)
         dd.io.save(images_file, self.images)
 
@@ -119,3 +134,12 @@ class Preprocessor:
 
         gs_matrix = phi + self.electric_field_coefficient * integral_receivers * np.identity(self.total_no_of_pixels)
         return gs_matrix
+
+    def get_rand_real_imag(self, test):
+        if test:
+            rand_real = np.ones((self.no_of_receivers, self.no_of_transmitters))
+            rand_imag = np.ones((self.no_of_receivers, self.no_of_transmitters))
+        else:
+            rand_real = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
+            rand_imag = np.random.randn(self.no_of_receivers, self.no_of_transmitters)
+        return rand_real, rand_imag
