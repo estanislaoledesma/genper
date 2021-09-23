@@ -133,6 +133,8 @@ dmypy.json
 
 # Logs
 logs/image_generator/*
+logs/preprocessor/*
 
 # Data
 data/image_generator/*
+data/preprocessor/*
