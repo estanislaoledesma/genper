@@ -33,7 +33,7 @@ class TestImageGeneratorFunctional(unittest.TestCase):
             electric_field_python = image.get_electric_field().get_electric_field()
             electric_field_matlab_file_name = ROOT_PATH + "/tests/functional_tests/matlab_files/electric_field_image_{}_matlab.csv".format(i)
             electric_field_matlab = pd.read_csv(electric_field_matlab_file_name, sep=",", header=None)
-            electric_field_matlab = electric_field_matlab.applymap(lambda s: np.complex(s.replace('i', 'j'))).values
+            electric_field_matlab = electric_field_matlab.applymap(lambda s: complex(s.replace('i', 'j'))).values
             are_close = np.allclose(electric_field_python, electric_field_matlab)
             self.assertTrue(are_close)
             i += 1

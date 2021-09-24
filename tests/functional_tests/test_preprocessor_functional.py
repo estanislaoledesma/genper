@@ -29,13 +29,13 @@ class TestPreprocessorFunctional(unittest.TestCase):
     def test_similar_gs_matrix(self):
         gs_matrix_matlab_file_name = ROOT_PATH + "/tests/functional_tests/matlab_files/gs_matrix_matlab.csv"
         gs_matrix_matlab = pd.read_csv(gs_matrix_matlab_file_name, sep=",", header=None)
-        gs_matrix_matlab = gs_matrix_matlab.applymap(lambda s: np.complex(s.replace('i', 'j'))).values
+        gs_matrix_matlab = gs_matrix_matlab.applymap(lambda s: complex(s.replace('i', 'j'))).values
         are_close = np.allclose(self.gs_matrix, gs_matrix_matlab)
         self.assertTrue(are_close)
 
     def test_similar_gd_matrix(self):
         gd_matrix_matlab_file_name = ROOT_PATH + "/tests/functional_tests/matlab_files/gd_matrix_matlab.csv"
         gd_matrix_matlab = pd.read_csv(gd_matrix_matlab_file_name, sep=",", header=None)
-        gd_matrix_matlab = gd_matrix_matlab.applymap(lambda s: np.complex(s.replace('i', 'j'))).values
+        gd_matrix_matlab = gd_matrix_matlab.applymap(lambda s: complex(s.replace('i', 'j'))).values
         are_close = np.allclose(self.gd_matrix, gd_matrix_matlab)
         self.assertTrue(are_close)
