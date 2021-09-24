@@ -138,3 +138,6 @@ logs/preprocessor/*
 # Data
 data/image_generator/*
 data/preprocessor/*
+
+# Functional tests
+tests/functional_tests/matlab_files/*.csv

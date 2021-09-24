@@ -71,3 +71,4 @@ class ImageGenerator:
             images_file = ROOT_PATH + "/data/image_generator/images.h5"
         LOG.info("Saving %d images to file %s", self.no_of_images, images_file)
         dd.io.save(images_file, images)
+        return images

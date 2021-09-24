@@ -104,6 +104,7 @@ class Preprocessor:
             images_file = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
         LOG.info("Saving %d preprocessed images to file %s", np.size(self.images), images_file)
         dd.io.save(images_file, self.images)
+        return gs_matrix, gd_matrix, self.images
 
     def generate_gs_matrix(self, x_domain, y_domain):
         x_receivers, y_receivers, _ = \
