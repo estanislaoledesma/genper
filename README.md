@@ -1,5 +1,7 @@
 # genper
 [![Build Status](https://app.travis-ci.com/estanislaoledesma/genper.svg?branch=master)](https://app.travis-ci.com/estanislaoledesma/genper)
+[![codecov](https://codecov.io/gh/estanislaoledesma/genper/branch/master/graph/badge.svg?token=EFvAqvxTxQ)](https://codecov.io/gh/estanislaoledesma/genper)
+
 GenPer es un software de tomografía por microondas capaz de reconstruir imágenes de permitividades de dieléctricos a 
 partir de sus datos de dispersión.
 
@@ -35,7 +37,14 @@ Contiene los scripts para ejecutar cada parte del código por separado.
 #### generate_images.py
 Mediante este script se llama al generador de imágenes, el cual generará un archivo images.h5 dentro de data/image_generator,  
 el cual será utilizado por el preprocesador. También generará los correspondientes logs dentro de logs/image_generator junto 
-con algunos archivos png de muestra de las imágenes generadas.
+con algunos archivos png de muestra de las imágenes generadas. Se le puede pasar la opción *-t* o *--test* para ejecutar 
+en modo testing.
+
+#### preprocess_images.py
+Mediante este script se llama al preprocesador de imágenes, el cual cargará el archivo images.h5 generado por el generador 
+de imágenes dentro de data/image_generator. A estas imágenes las procesará y generará su correspondiente archivo 
+preprocessed_images.h5 dentro de data/preprocessor. También generará los correspondientes logs dentro de logs/preprocessor. 
+Se le puede pasar la opción *-t* o *--test* para ejecutar en modo testing.
 
 ### tests
 Contiene todos los archivos de tests.

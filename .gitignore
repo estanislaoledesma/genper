@@ -132,7 +132,15 @@ dmypy.json
 .idea
 
 # Logs
-logs/image_generator/*
+logs/image_generator/*.log
+logs/image_generator/images/*.png
+logs/image_generator/images/test/*.png
+logs/preprocessor/*.log
+logs/preprocessor/preprocessed_images/*.png
+logs/preprocessor/preprocessed_images/test/*.png
 
 # Data
-data/image_generator/*
+data/image_generator/*.h5
+data/image_generator/test/*.h5
+data/preprocessor/*.h5
+data/preprocessor/test/*.h5

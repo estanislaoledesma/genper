@@ -18,15 +18,24 @@ class CircleGenerator:
         self.min_radius = images_parameters["min_radius"]
         self.max_radius = images_parameters["max_radius"]
 
-    def generate_circles(self, no_of_circles):
+    def generate_circles(self, no_of_circles, test, image_i):
         circles = []
 
+        test_random_values = [[0, 0.5], [0.5, 0.9], [0.8, 0], [1, 0.4], [0.9, 0.2]]
         for i in range(no_of_circles):
-            radius = self.min_radius + (self.max_radius - self.min_radius) * np.random.uniform()
-            center_range = [-1 + radius + 0.05, 1 - radius - 0.05]
-            center_x = center_range[0] + (center_range[1] - center_range[0]) * np.random.uniform()
-            center_y = center_range[0] + (center_range[1] - center_range[0]) * np.random.uniform()
-            relative_permittivity = self.min_permittivity + (self.max_permittivity - self.min_permittivity) * np.random.uniform()
+            if test:
+                radius = self.min_radius + (self.max_radius - self.min_radius) * test_random_values[image_i][i]
+                center_range = [-1 + radius + 0.05, 1 - radius - 0.05]
+                center_x = center_range[0] + (center_range[1] - center_range[0]) * test_random_values[image_i][i]
+                center_y = center_range[0] + (center_range[1] - center_range[0]) * test_random_values[image_i][i]
+                relative_permittivity = self.min_permittivity + (
+                            self.max_permittivity - self.min_permittivity) * test_random_values[image_i][i]
+            else:
+                radius = self.min_radius + (self.max_radius - self.min_radius) * np.random.uniform()
+                center_range = [-1 + radius + 0.05, 1 - radius - 0.05]
+                center_x = center_range[0] + (center_range[1] - center_range[0]) * np.random.uniform()
+                center_y = center_range[0] + (center_range[1] - center_range[0]) * np.random.uniform()
+                relative_permittivity = self.min_permittivity + (self.max_permittivity - self.min_permittivity) * np.random.uniform()
             circle = Circle(no_of_circles, radius, center_x, center_y, relative_permittivity)
             circles.append(circle)
 

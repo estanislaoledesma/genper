@@ -6,23 +6,34 @@ import unittest
 import numpy as np
 import pandas as pd
 
+from dataloader.image_generator import ImageGenerator
+
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
-from dataloader.circle_generator import CircleGenerator
 
-class TestImageGeneratorFuncitonal(unittest.TestCase):
+class TestImageGeneratorFunctional(unittest.TestCase):
+
+    def setUp(self):
+        image_generator = ImageGenerator(True)
+        self.images = image_generator.generate_images(True)
 
     def test_equal_images(self):
-        image_python = np.genfromtxt(ROOT_PATH + "/tests/functional_tests/image_python.csv", delimiter=",")
-        image_matlab = np.genfromtxt(ROOT_PATH + "/tests/functional_tests/image_matlab.csv", delimiter=",")
-        are_equal = np.array_equal(image_python, image_matlab)
-        self.assertTrue(are_equal)
+        i = 1
+        for image in self.images:
+            image_python = image.get_relative_permittivities()
+            image_matlab_file_name = ROOT_PATH + "/tests/functional_tests/matlab_files/image_{}_matlab.csv".format(i)
+            image_matlab = np.genfromtxt(image_matlab_file_name, delimiter=",")
+            are_equal = np.array_equal(image_python, image_matlab)
+            self.assertTrue(are_equal)
+            i += 1
 
     def test_similar_electric_fields(self):
-        electric_field_matlab = pd.read_csv(ROOT_PATH + "/tests/functional_tests/electric_field_matlab.csv", sep=",", header=None)
-        electric_field_matlab = electric_field_matlab.applymap(lambda s: np.complex(s.replace('i', 'j'))).values
-        electric_field_python = np.loadtxt(ROOT_PATH + "/tests/functional_tests/electric_field_python.txt").view(complex)
-        dif = electric_field_python - electric_field_matlab
-        relative_error = np.linalg.norm(dif) / np.linalg.norm(electric_field_python)
-        self.assertTrue(relative_error < 10 ** -5)
-
+        i = 1
+        for image in self.images:
+            electric_field_python = image.get_electric_field().get_electric_field()
+            electric_field_matlab_file_name = ROOT_PATH + "/tests/functional_tests/matlab_files/electric_field_image_{}_matlab.csv".format(i)
+            electric_field_matlab = pd.read_csv(electric_field_matlab_file_name, sep=",", header=None)
+            electric_field_matlab = electric_field_matlab.applymap(lambda s: complex(s.replace('i', 'j'))).values
+            are_close = np.allclose(electric_field_python, electric_field_matlab)
+            self.assertTrue(are_close)
+            i += 1

@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from dataloader.image_generator import ImageGenerator
+from dataloader.preprocessor import Preprocessor
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -12,5 +12,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
 
-    image_generator = ImageGenerator(test)
-    image_generator.generate_images(test)
+    preprocessor = Preprocessor(test)
+    preprocessor.preprocess(test)
