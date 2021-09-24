@@ -1,0 +1,1 @@
+tests/functional_tests/matlab_files/*.csv filter=lfs diff=lfs merge=lfs -text
