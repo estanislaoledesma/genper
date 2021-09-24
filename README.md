@@ -1,5 +1,7 @@
 # genper
 [![Build Status](https://app.travis-ci.com/estanislaoledesma/genper.svg?branch=master)](https://app.travis-ci.com/estanislaoledesma/genper)
+[![codecov](https://codecov.io/gh/estanislaoledesma/genper/branch/master/graph/badge.svg?token=EFvAqvxTxQ)](https://codecov.io/gh/estanislaoledesma/genper)
+
 GenPer es un software de tomografía por microondas capaz de reconstruir imágenes de permitividades de dieléctricos a 
 partir de sus datos de dispersión.
 
