@@ -144,6 +144,3 @@ data/image_generator/*.h5
 data/image_generator/test/*.h5
 data/preprocessor/*.h5
 data/preprocessor/test/*.h5
-
-# Functional tests
-tests/functional_tests/matlab_files/*.csv
