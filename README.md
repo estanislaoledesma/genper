@@ -10,7 +10,7 @@ partir de sus datos de dispersión.
 ### configs
 Contiene todos los hiperparámetros, rutas de archivos y cualquier cosa configurable del proyecto.
 
-### dataloader
+### data
 Contiene todos los archivos generados durante el procesamiento del software.
 
 ### dataloader
