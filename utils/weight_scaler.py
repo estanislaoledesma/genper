@@ -8,13 +8,16 @@ from configs.constants import Constants
 class WeightScaler:
 
     @staticmethod
-    def get_weight_scale(weight_scale_init_method, h, w, in_channels, out_channels):
+    def get_weights_scaled(weights, weight_scale_init_method, height, width, in_channels, out_channels):
         basic_parameters = Constants.get_basic_parameters()
         unet_parameters = basic_parameters["unet"]
         scale = unet_parameters["scale"]
         if weight_scale_init_method == "gaussian":
-            return 0.01/scale
+            scale = 0.01/scale
+            return weights * scale
         elif weight_scale_init_method == "xavier":
-            return np.sqrt(3/(h*w*in_channels))
+            scale = np.sqrt(3/(height*width*in_channels))
+            return (weights * 2 - 1) * scale
         else:
-            return np.sqrt(2/(h*w*out_channels))
+            scale = np.sqrt(2/(height*width*out_channels))
+            return weights * scale

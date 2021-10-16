@@ -35,6 +35,11 @@
             "use_gpu": false,
             "scale": 1,
             "weight_scale_init_method": "gaussian",
-            "batch_normalization": true
+            "batch_normalization": true,
+            "kernel_size": 3,
+            "stride": 1,
+            "batch_on": true,
+            "relu_on": true,
+            "reg_num": 3
         }
 }

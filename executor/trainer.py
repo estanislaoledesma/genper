@@ -9,9 +9,12 @@ class Trainer:
         basic_parameters = Constants.get_basic_parameters()
         images_parameters = basic_parameters["images"]
         physics_parameters = basic_parameters["physics"]
+        unet_parameters = basic_parameters["unet"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
         self.no_of_images = images_parameters["no_of_images"]
         self.test_percentage = images_parameters["test_percentage"]
         self.no_of_test_images = self.no_of_images * self.test_percentage
         self.permittivity_coefficient = physics_parameters["permittivity_coefficient"]
+        self.kernel_size = unet_parameters["kernel_size"]
+
 
