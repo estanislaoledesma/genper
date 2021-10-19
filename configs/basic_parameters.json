@@ -40,6 +40,7 @@
             "stride": 1,
             "batch_on": true,
             "relu_on": true,
-            "reg_num": 3
+            "reg_num": 3,
+            "test_proportion": 0.05
         }
 }

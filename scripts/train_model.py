@@ -1,0 +1,17 @@
+import argparse
+import os
+import sys
+
+from executor.trainer import Trainer
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--test", help="Run in test mode", action='store_true')
+    args = parser.parse_args()
+    test = args.test
+
+    trainer = Trainer(test)
+    trainer.train(test)
