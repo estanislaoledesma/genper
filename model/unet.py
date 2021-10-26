@@ -20,11 +20,12 @@ class UNet(nn.Module):
         unet_parameters = basic_parameters["unet"]
         kernel_size = unet_parameters["kernel_size"]
         in_channels = unet_parameters["in_channels"]
+        out_channels = unet_parameters["out_channels"]
         stride = unet_parameters["stride"]
         batch_on = unet_parameters["batch_on"]
         relu_on = unet_parameters["relu_on"]
         reg_num = unet_parameters["reg_num"]
-        padding = np.floor(kernel_size/2)
+        padding = int(kernel_size/2)
         self.registers = Registers(reg_num)
         self.conv1 = ConvolutionBlock(kernel_size, kernel_size, in_channels, 64, stride, padding, batch_on, relu_on)
         self.conv2 = ConvolutionBlock(kernel_size, kernel_size, 64, 64, stride, padding, batch_on, relu_on)
@@ -45,7 +46,7 @@ class UNet(nn.Module):
         self.reg_concat2 = RegConcatBlock(self.registers, 0)
         self.conv10 = ConvolutionBlock(kernel_size, kernel_size, 128, 64, stride, padding, batch_on, relu_on)
         self.conv11 = ConvolutionBlock(kernel_size, kernel_size, 64, 64, stride, padding, batch_on, relu_on)
-        self.conv12 = ConvolutionBlock(1, 1, 64, self.out_channels, stride, padding, False, False)
+        self.conv12 = ConvolutionBlock(1, 1, 64, out_channels, stride, padding, False, False)
 
     def forward(self, x):
         x = self.conv1(x)

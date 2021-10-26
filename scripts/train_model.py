@@ -1,10 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import argparse
 import os
 import sys
 
-from executor.trainer import Trainer
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from executor.trainer import Trainer
 
 
 if __name__ == "__main__":

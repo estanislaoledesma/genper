@@ -18,7 +18,7 @@ class ConvolutionBlock(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.weight_scale_init_method = unet_parameters["weight_scale_init_method"]
-        self.conv = nn.Conv2d(in_channels, out_channels, (width, height),
+        self.conv = nn.Conv2d(in_channels, out_channels, (height, width),
                               stride=stride, padding=padding, bias=False)
         if unet_parameters["batch_normalization"] and batch_on:
             self.bnorm = nn.BatchNorm2d(out_channels)
@@ -28,7 +28,8 @@ class ConvolutionBlock(nn.Module):
     def forward(self, x):
         new_weight = WeightScaler.get_weights_scaled(self.conv.weight, self.weight_scale_init_method, self.height,
                                                      self.width, self.in_channels, self.out_channels)
-        x = self.conv._conv_forward(x, new_weight)
+        #x = self.conv._conv_forward(x, new_weight, self.conv.bias)
+        x = self.conv(x)
         if self.bnorm:
             x = self.bnorm(x)
         if self.relu:
