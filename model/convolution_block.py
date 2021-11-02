@@ -28,8 +28,7 @@ class ConvolutionBlock(nn.Module):
     def forward(self, x):
         new_weight = WeightScaler.get_weights_scaled(self.conv.weight, self.weight_scale_init_method, self.height,
                                                      self.width, self.in_channels, self.out_channels)
-        #x = self.conv._conv_forward(x, new_weight, self.conv.bias)
-        x = self.conv(x)
+        x = self.conv._conv_forward(x, new_weight, self.conv.bias)
         if self.bnorm:
             x = self.bnorm(x)
         if self.relu:
