@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
+import torch
 from torch import nn
+import torch.nn.functional as F
 
 
 class RegConcatBlock(nn.Module):
@@ -12,26 +14,30 @@ class RegConcatBlock(nn.Module):
         self.reg_set = reg_set
 
     def forward(self, x):
-        reg_concat_temp = np.zeros((x.shape[0],
+        reg_concat_temp = torch.zeros(x.shape[0],
                                    x.shape[1] * 2, self.registers.get_x(self.reg_set).shape[2],
-                                   self.registers.get_x(self.reg_set).shape[3]))
+                                   self.registers.get_x(self.reg_set).shape[3])
 
-        reg_concat_temp[:, np.arange(0, x.shape[1]), :, :] = \
-                self.registers.get_x(self.reg_set).cpu().detach().numpy()
+        reg_concat_temp[:, torch.arange(0, x.shape[1]), :, :] = \
+                self.registers.get_x(self.reg_set)
 
         dif_dim = np.array(self.registers.get_x(self.reg_set).shape) - np.array(x.shape)
-        if dif_dim[0] % 2 == 0:
-            tmp = np.pad(x.detach().numpy(), [(int(dif_dim[0] / 2),), (0,), (0,)])
+        if dif_dim[2] % 2 == 0:
+            padding = int(dif_dim[2] / 2)
+            tmp = F.pad(x, (0, 0, padding, padding, 0, 0, 0, 0))
         else:
-            tmp = np.pad(x.detach().numpy(), [(np.fix(dif_dim[0] / 2),), (0,), (0,)])
-            tmp = np.pad(x.detach().numpy(), [(1, 0), (0, 0), (0, 0)])
+            padding = torch.fix(dif_dim[2] / 2)
+            tmp = F.pad(x, (0, 0, padding, padding, 0, 0, 0, 0))
+            tmp = F.pad(tmp, (0, 0, 1, 0, 0, 0, 0, 0))
 
-        if dif_dim[1] % 2 == 0:
-            tmp = np.pad(x.detach().numpy(), [(0,), (int(dif_dim[1] / 2),), (0,)])
+        if dif_dim[3] % 2 == 0:
+            padding = int(dif_dim[3] / 2)
+            tmp = F.pad(tmp, (padding, padding, 0, 0, 0, 0, 0, 0))
         else:
-            tmp = np.pad(x.detach().numpy(), [(0,), (np.fix(dif_dim[1] / 2),), (0,)])
-            tmp = np.pad(x.detach().numpy(), [(0, 0), (1, 0), (0, 0)])
-        reg_concat_temp[:, np.arrange(0, x.shape[1]), :, :] = tmp
+            padding = torch.fix(dif_dim[1] / 2)
+            tmp = F.pad(tmp, (padding, padding, 0, 0, 0, 0, 0, 0))
+            tmp = F.pad(tmp, (1, 0, 0, 0, 0, 0, 0, 0))
+        reg_concat_temp[:, torch.arange(0, x.shape[1]), :, :] = tmp
         return reg_concat_temp
 
     def backward(self, dzdx):

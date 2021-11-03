@@ -46,7 +46,7 @@ class UNet(nn.Module):
         self.reg_concat2 = RegConcatBlock(self.registers, 0)
         self.conv10 = ConvolutionBlock(kernel_size, kernel_size, 128, 64, stride, padding, batch_on, relu_on)
         self.conv11 = ConvolutionBlock(kernel_size, kernel_size, 64, 64, stride, padding, batch_on, relu_on)
-        self.conv12 = ConvolutionBlock(1, 1, 64, out_channels, stride, padding, False, False)
+        self.conv12 = ConvolutionBlock(1, 1, 64, out_channels, stride, 0, False, False)
 
     def forward(self, x):
         x = self.conv1(x)
