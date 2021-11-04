@@ -3,9 +3,13 @@
 import os
 from datetime import datetime
 
+import numpy as np
 import torch
+from torch import optim, nn
+from matplotlib import pyplot as plt
 from torchvision.transforms import transforms
 from tqdm import tqdm
+import seaborn as sns
 
 from configs.constants import Constants
 from configs.logger import Logger
@@ -58,6 +62,9 @@ class Trainer:
         LOG.info("Train set has %d images", self.n_train)
         LOG.info("Validation set has %d images", self.n_val)
         self.num_epochs = unet_parameters["num_epochs"]
+        self.learning_rate = 1e-2
+        self.optimizer = optim.RMSprop(self.unet.parameters(), lr=self.learning_rate, weight_decay=1e-8, momentum=0.9)
+        self.criterion = nn.MSELoss()
 
     def train(self, test):
         LOG.info("Going to iterate for %d epochs", self.num_epochs)
@@ -67,11 +74,38 @@ class Trainer:
             with tqdm(total=self.n_train, desc=f'Epoch {epoch + 1}/{self.num_epochs}', unit='img') as pbar:
                 for images, labels in self.train_loader:
                     images = images.to(device=self.device, dtype=torch.float32)
+                    labels = labels.to(device=self.device, dtype=torch.float32)
+                    self.optimizer.zero_grad(set_to_none=True)
                     prediction = self.unet(images)
-                    loss = EuclideanLossBlock.get_loss(prediction, labels)
+                    loss = self.criterion(prediction, labels)
+                    epoch_loss += loss.item()
+                    loss.backward()
+                    self.optimizer.step()
                     pbar.update(len(images))
-                    epoch_loss += loss
+
                     pbar.set_postfix(**{'loss (batch)': loss})
+                    basic_parameters = Constants.get_basic_parameters()
+                    images_parameters = basic_parameters["images"]
+                    max_diameter = images_parameters["max_diameter"]
+                    x_max = 63
+                    y_max = 63
+                    plt.close("all")
+                    figure, axis = plt.subplots(1, 2, figsize=(15, 15))
+                    sns.heatmap(ax=axis[0], data=labels[-1, -1, :, :].detach().numpy(), cmap="rocket",
+                                cbar_kws={"label": "Permitividades relativas"})
+                    axis[0].set_xticks(np.linspace(0, x_max, 5))
+                    axis[0].set_xticklabels(np.linspace(-max_diameter, max_diameter, 5))
+                    axis[0].set_yticks(np.linspace(y_max, 0, 5))
+                    axis[0].set_yticklabels(np.linspace(-max_diameter, max_diameter, 5))
+                    axis[0].set_title("Imagen original")
+                    sns.heatmap(ax=axis[1], data=prediction[-1, -1, :, :].detach().numpy(), cmap="rocket",
+                                cbar_kws={"label": "Permitividades relativas"})
+                    axis[1].set_xticks(np.linspace(0, x_max, 5))
+                    axis[1].set_xticklabels(np.linspace(-max_diameter, max_diameter, 5))
+                    axis[1].set_yticks(np.linspace(y_max, 0, 5))
+                    axis[1].set_yticklabels(np.linspace(-max_diameter, max_diameter, 5))
+                    axis[1].set_title("Imagen obtenida de la red neuronal")
+                    plt.pause(0.01)
 
 
 
