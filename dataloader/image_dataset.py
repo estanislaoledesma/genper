@@ -16,8 +16,9 @@ class ImageDataset(Dataset):
     def __getitem__(self, idx):
         current_image = self.images[idx]
         image = current_image.get_preprocessor_guess()
+        label = current_image.get_relative_permittivities()
         if self.transform:
             image = self.transform(image)
-        label = current_image.get_relative_permittivities()
+            label = self.transform(label)
         return image, label
 

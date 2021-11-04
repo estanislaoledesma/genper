@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numpy as np
+import torch
 
 
 class EuclideanLossBlock():
 
     @staticmethod
     def get_loss(x, target, dzdy=None):
-        assert np.size(x) == np.size(target)
-        target = np.reshape(target, x.shape)
+        assert x.shape == target.shape
+        target = torch.reshape(target, x.shape)
         if dzdy is None:
             dist = (x - target) ** 2
-            dist = np.atleast_2d(dist.flatten("F")).T
-            return np.sqrt(np.sum(dist))
+            dist = dist.transpose(2, 3)
+            dist = torch.flatten(dist)
+            return torch.sqrt(torch.sum(dist))
         else:
-            assert np.size(dzdy) == 1
+            assert torch.numel(dzdy) == 1
             return dzdy * (x - target)
