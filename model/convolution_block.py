@@ -28,9 +28,9 @@ class ConvolutionBlock(nn.Module):
             self.relu = nn.ReLU()
 
     def forward(self, x):
-        new_weight = WeightScaler.get_weights_scaled(self.conv.weight, self.weight_scale_init_method, self.height,
-                                                     self.width, self.in_channels, self.out_channels)
-        x = self.conv._conv_forward(x, new_weight, self.conv.bias)
+        WeightScaler.set_weights_scaled(self.conv, self.weight_scale_init_method, self.height,
+                                        self.width, self.in_channels, self.out_channels)
+        x = self.conv(x)
         if self.batch_on:
             x = self.bnorm(x)
         if self.relu_on:
