@@ -3,13 +3,10 @@
 import os
 from datetime import datetime
 
-import numpy as np
 import torch
-from torch import optim, nn
-from matplotlib import pyplot as plt
+from torch import optim
 from torchvision.transforms import transforms
 from tqdm import tqdm
-import seaborn as sns
 from torchsummary import summary
 
 from configs.constants import Constants
@@ -80,7 +77,8 @@ class Trainer:
             self.unet.train()
             epoch_loss = 0
             with tqdm(total=self.n_train, desc=f'Epoch {epoch + 1}/{self.num_epochs}', unit='img') as pbar:
-                for ix, images, labels in enumerate(self.train_loader):
+                for ix, batch in enumerate(self.train_loader):
+                    images, labels = batch
                     images = images.to(device=self.device, dtype=torch.float32)
                     labels = labels.to(device=self.device, dtype=torch.float32)
                     self.optimizer.zero_grad(set_to_none=True)
@@ -95,8 +93,10 @@ class Trainer:
                     if ix % 50 == 0 and not test:
                         plot_title = "Epoch {} - Batch {}".format(epoch, ix)
                         path = ROOT_PATH + "/logs/trainer/trained_images/trained_image_{}_{}".format(epoch, ix)
-                        self.plotter.plot_comparison(plot_title, path, labels, images, prediction)
-                    if ix % 5 == 0 and test:
+                        self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
+                                                     images[-1, -1, :, :].detach().numpy(), prediction[-1, -1, :, :].detach().numpy())
+                    if test:
                         plot_title = "Epoch {} - Batch {}".format(epoch, ix)
                         path = ROOT_PATH + "/logs/trainer/trained_images/test/trained_image_{}_{}".format(epoch, ix)
-                        self.plotter.plot_comparison(plot_title, path, labels, images, prediction)
+                        self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
+                                                     images[-1, -1, :, :].detach().numpy(), prediction[-1, -1, :, :].detach().numpy())

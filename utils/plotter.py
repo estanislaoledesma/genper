@@ -35,16 +35,19 @@ class Plotter:
 
         for plot in range(no_of_plots):
             title = titles[plot]
-            data = data[plot]
-            self.plot(axis, plot, title, data)
+            data_to_plot = data[plot]
+            if no_of_plots > 1:
+                self.plot(axis[plot], title, data_to_plot)
+            else:
+                self.plot(axis, title, data_to_plot)
         plt.pause(0.01)
         plt.savefig(path)
 
-    def plot(self, axis, ix, title, data):
-        sns.heatmap(ax=axis[ix], data=data[-1, -1, :, :].detach().numpy(), cmap="rocket",
+    def plot(self, axis, title, data):
+        sns.heatmap(ax=axis, data=data, cmap="rocket",
                     cbar_kws={"label": "Permitividades relativas"})
-        axis[ix].set_xticks(np.linspace(0, self.x_max, 5))
-        axis[ix].set_xticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
-        axis[ix].set_yticks(np.linspace(self.y_max, 0, 5))
-        axis[ix].set_yticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
-        axis[ix].set_title(title)
+        axis.set_xticks(np.linspace(0, self.x_max, 5))
+        axis.set_xticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
+        axis.set_yticks(np.linspace(self.y_max, 0, 5))
+        axis.set_yticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
+        axis.set_title(title)
