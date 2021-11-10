@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-import torch
 from numpy import pi
 from utils.coordinates_converter import CoordinatesConverter
 
@@ -79,16 +78,3 @@ class TestCoordinatesConverter(unittest.TestCase):
         x, y = CoordinatesConverter.pol2cart(rho, phi)
         assert abs(x - 0) < 1e-10
         assert y == -4
-
-    def test(self):
-        x = torch.Tensor([[1, 2], [3, 4]])
-        #y = torch.Tensor([[5, 6], [7, 8]])
-        #x = x[:, :, None]
-        #x = torch.cat((x, y.unsqueeze(2)), dim=-1)
-        x = x.unsqueeze(0)
-        x = x.unsqueeze(0)
-        z = x[-1, -1, :, :]
-        print(x)
-        print(x.shape)
-        print(z)
-        print(z.shape)

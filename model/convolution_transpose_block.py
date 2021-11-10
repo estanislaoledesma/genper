@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from torch import nn
-import torchvision
 
 from configs.constants import Constants
-from utils.weight_scaler import WeightScaler
 
 
 class ConvolutionTransposeBlock(nn.Module):
@@ -29,9 +27,6 @@ class ConvolutionTransposeBlock(nn.Module):
             self.relu = nn.ReLU()
 
     def forward(self, x):
-        new_weight = WeightScaler.get_weights_scaled(self.convt.weight, self.weight_scale_init_method, self.height,
-                                                     self.width, self.out_channels, self.in_channels)
-        #x = self.convt._conv_forward(x, new_weight, self.convt.bias)
         x = self.convt(x)
         if self.batch_on:
             x = self.bnorm(x)

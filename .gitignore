@@ -138,9 +138,14 @@ logs/image_generator/images/test/*.png
 logs/preprocessor/*.log
 logs/preprocessor/preprocessed_images/*.png
 logs/preprocessor/preprocessed_images/test/*.png
+logs/trainer/*.log
+logs/trainer/trained_images/*.png
+logs/trainer/trained_images/test/*.png
 
 # Data
 data/image_generator/*.h5
 data/image_generator/test/*.h5
 data/preprocessor/*.h5
 data/preprocessor/test/*.h5
+data/trainer/*.h5
+data/trainer/test/*.h5
