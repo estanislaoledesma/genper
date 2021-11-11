@@ -6,11 +6,9 @@ from datetime import datetime
 import numpy as np
 import torch
 from torch import optim, nn
-from matplotlib import pyplot as plt
 from torchsummary import summary
 from torchvision.transforms import transforms
 from tqdm import tqdm
-import seaborn as sns
 
 from configs.constants import Constants
 from configs.logger import Logger
@@ -19,6 +17,7 @@ from model.unet import UNet
 import deepdish as dd
 from torch.utils.data import random_split, DataLoader
 
+from utils.checkpoint_manager import CheckpointManager
 from utils.plotter import Plotter
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -31,11 +30,14 @@ LOG = Logger.get_root_logger(
 
 class Trainer:
 
+    CHECKPOINT_PATH = checkpoint_path = ROOT_PATH + "/executor/checkpoints"
+
     def __init__(self, test):
         basic_parameters = Constants.get_basic_parameters()
         unet_parameters = basic_parameters["unet"]
         images_parameters = basic_parameters["images"]
         self.batch_size = unet_parameters["batch_size"]
+        self.accumulation_steps = unet_parameters["accumulation_steps"]
         self.num_sub_batches = unet_parameters["num_sub_batches"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -59,7 +61,7 @@ class Trainer:
         self.n_train = len(preprocessed_images) - self.n_val
         train_set, test_set = random_split(preprocessed_images, [self.n_train, self.n_val],
                                            generator=torch.Generator().manual_seed(0))
-        loader_args = dict(batch_size=self.batch_size, num_workers=0, pin_memory=False)
+        loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=False)
         self.train_loader = DataLoader(train_set, shuffle=False, **loader_args)
         self.val_loader = DataLoader(test_set, shuffle=False, drop_last=True, **loader_args)
         LOG.info("Splitting image set into validation and train with %d %% and %d %%, respectively ",
@@ -69,28 +71,29 @@ class Trainer:
         self.num_epochs = unet_parameters["num_epochs"]
         learning_rate = unet_parameters["learning_rate"]
         weight_decay = unet_parameters["weight_decay"]
-        momentum = unet_parameters["momentum"]
-        self.optimizer = optim.RMSprop(self.unet.parameters(), lr=learning_rate, weight_decay=weight_decay,
-                                       momentum=momentum)
+        self.optimizer = optim.AdamW(self.unet.parameters(), lr=learning_rate, weight_decay=weight_decay)
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
     def train(self, test):
         LOG.info("Going to iterate for %d epochs", self.num_epochs)
-        for epoch in range(self.num_epochs):
+        self.unet, self.optimizer, init_epoch,  = CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH)
+        for epoch in range(init_epoch, self.num_epochs):
             self.unet.train()
             epoch_loss = 0
+            self.optimizer.zero_grad(set_to_none=True)
             with tqdm(total=self.n_train, desc=f'Epoch {epoch + 1}/{self.num_epochs}', unit='img') as pbar:
-                for ix, batch in enumerate(self.train_loader):
-                    images, labels = batch
+                for ix, (images, labels) in enumerate(self.train_loader):
                     images = images.to(device=self.device, dtype=torch.float32)
                     labels = labels.to(device=self.device, dtype=torch.float32)
-                    self.optimizer.zero_grad(set_to_none=True)
                     prediction = self.unet(images)
                     loss = self.criterion(prediction, labels)
+                    loss = loss / self.accumulation_steps
                     epoch_loss += loss.item()
                     loss.backward()
-                    self.optimizer.step()
+                    if (ix + 1) % self.accumulation_steps == 0:
+                        self.optimizer.step()
+                        self.optimizer.zero_grad(set_to_none=True)
                     pbar.update(len(images))
                     pbar.set_postfix(**{'loss (batch)': loss})
 
@@ -106,3 +109,5 @@ class Trainer:
                         self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
                                                      prediction[-1, -1, :, :].detach().numpy())
+
+            CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH, epoch)
