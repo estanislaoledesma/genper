@@ -149,3 +149,6 @@ data/preprocessor/*.h5
 data/preprocessor/test/*.h5
 data/trainer/*.h5
 data/trainer/test/*.h5
+
+# Model checkpoints
+executor/checkpoints/*.pt

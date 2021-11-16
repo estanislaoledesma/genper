@@ -20,4 +20,4 @@ class CheckpointManager:
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epoch = checkpoint['epoch']
 
-        return model, optimizer, epoch
+        return model, optimizer, epoch + 1

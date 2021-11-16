@@ -30,7 +30,7 @@ LOG = Logger.get_root_logger(
 
 class Trainer:
 
-    CHECKPOINT_PATH = checkpoint_path = ROOT_PATH + "/executor/checkpoints"
+    CHECKPOINT_PATH = checkpoint_path = ROOT_PATH + "/executor/checkpoints/checkpoint.pt"
 
     def __init__(self, test):
         basic_parameters = Constants.get_basic_parameters()
@@ -75,9 +75,12 @@ class Trainer:
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
-    def train(self, test):
+    def train(self, test, load):
         LOG.info("Going to iterate for %d epochs", self.num_epochs)
-        self.unet, self.optimizer, init_epoch,  = CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH)
+        init_epoch = 0
+        if load:
+            LOG.info("Going to load model from %s", self.CHECKPOINT_PATH)
+            self.unet, self.optimizer, init_epoch  = CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH)
         for epoch in range(init_epoch, self.num_epochs):
             self.unet.train()
             epoch_loss = 0
@@ -98,16 +101,24 @@ class Trainer:
                     pbar.set_postfix(**{'loss (batch)': loss})
 
                     if ix % 50 == 0 and not test:
-                        plot_title = "Epoch {} - Batch {}".format(epoch, ix)
+                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
                         path = ROOT_PATH + "/logs/trainer/trained_images/trained_image_{}_{}".format(epoch, ix)
                         self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
                                                      prediction[-1, -1, :, :].detach().numpy())
                     if test:
-                        plot_title = "Epoch {} - Batch {}".format(epoch, ix)
+                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
                         path = ROOT_PATH + "/logs/trainer/trained_images/test/trained_image_{}_{}".format(epoch, ix)
                         self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
                                                      prediction[-1, -1, :, :].detach().numpy())
 
             CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH, epoch)
+            LOG.info("Saving progress for epoch %d with loss %d", epoch, epoch_loss)
+
+        if test:
+            model_file = ROOT_PATH + "/data/trainer/test/trained_model.h5"
+        else:
+            model_file = ROOT_PATH + "/data/trainer/trained_model.h5"
+        LOG.info("Saving fully trained model to file %s", model_file)
+        dd.io.save(model_file, self.unet)
