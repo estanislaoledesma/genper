@@ -3,7 +3,6 @@
 import os
 from datetime import datetime
 
-import numpy as np
 import torch
 from torch import optim, nn
 from torchsummary import summary
@@ -117,8 +116,8 @@ class Trainer:
             LOG.info("Saving progress for epoch %d with loss %d", epoch, epoch_loss)
 
         if test:
-            model_file = ROOT_PATH + "/data/trainer/test/trained_model.h5"
+            model_file = ROOT_PATH + "/data/trainer/test/trained_model.pt"
         else:
-            model_file = ROOT_PATH + "/data/trainer/trained_model.h5"
+            model_file = ROOT_PATH + "/data/trainer/trained_model.pt"
         LOG.info("Saving fully trained model to file %s", model_file)
-        dd.io.save(model_file, self.unet)
+        CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH, self.num_epochs)
