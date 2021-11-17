@@ -30,8 +30,6 @@ LOG = Logger.get_root_logger(
 
 class Trainer:
 
-    CHECKPOINT_PATH = checkpoint_path = ROOT_PATH + "/executor/checkpoints/checkpoint.pt"
-
     def __init__(self, test):
         basic_parameters = Constants.get_basic_parameters()
         unet_parameters = basic_parameters["unet"]
@@ -49,10 +47,12 @@ class Trainer:
             self.val_proportion = 0.2
             LOG.info("Starting preprocessor in testing mode")
             images_path = ROOT_PATH + "/data/preprocessor/test/preprocessed_images.h5"
+            self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pth"
         else:
             self.val_proportion = unet_parameters["val_proportion"]
             LOG.info("Starting preprocessor in standard mode")
             images_path = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
+            self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pth"
         LOG.info("Loading preprocessed images from file %s", images_path)
         transform = transforms.ToTensor()
         preprocessed_images = ImageDataset(dd.io.load(images_path), transform=transform)
@@ -79,8 +79,9 @@ class Trainer:
         init_epoch = 0
         min_valid_loss = np.inf
         if load:
-            LOG.info(f'''Going to load model from {self.CHECKPOINT_PATH}''')
-            self.unet, self.optimizer, init_epoch, min_valid_loss = CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH)
+            LOG.info(f'''Going to load model from {self.checkpoint_path}''')
+            self.unet, self.optimizer, init_epoch, min_valid_loss = \
+                CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.checkpoint_path)
 
         LOG.info(f'''Starting training:
                             Epochs:          {self.num_epochs - init_epoch}
@@ -110,14 +111,14 @@ class Trainer:
                     pbar.set_postfix(**{'loss (batch)': loss})
 
                     if ix % 50 == 0 and not test:
-                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix + 1)
-                        path = ROOT_PATH + "/logs/trainer/trained_images/trained_image_{}_{}".format(epoch, ix)
+                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
+                        path = ROOT_PATH + "/logs/trainer/trained_images/trained_image_{}_{}".format(epoch + 1, ix)
                         self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
                                                      prediction[-1, -1, :, :].detach().numpy())
                     if test:
-                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix + 1)
-                        path = ROOT_PATH + "/logs/trainer/trained_images/test/trained_image_{}_{}".format(epoch, ix)
+                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
+                        path = ROOT_PATH + "/logs/trainer/trained_images/test/trained_image_{}_{}".format(epoch + 1, ix)
                         self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
                                                      prediction[-1, -1, :, :].detach().numpy())
@@ -131,13 +132,14 @@ class Trainer:
                 loss = self.criterion(prediction, labels)
                 validation_loss = loss.item()
 
-            LOG.info(f'''Statistics of epoch {epoch}/{self.num_epochs}:
+            LOG.info(f'''Statistics of epoch {epoch + 1}/{self.num_epochs}:
                                 Loss: {epoch_loss:.6f}
                                 Validation loss: {validation_loss:.6f}
                                 Min validation loss: {min_valid_loss:.6f}''')
             if min_valid_loss > validation_loss:
                 min_valid_loss = validation_loss
-                CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH, epoch,
+                CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.checkpoint_path, epoch,
                                                   min_valid_loss)
                 LOG.info(f'''Saving progress for epoch {epoch} with loss {epoch_loss:.6f}''')
 
+    LOG.info(f'''Finishing training of the network''')
