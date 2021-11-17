@@ -3,6 +3,7 @@
 import os
 from datetime import datetime
 
+import numpy as np
 import torch
 from torch import optim, nn
 from torchsummary import summary
@@ -68,21 +69,30 @@ class Trainer:
         LOG.info("Train set has %d images", self.n_train)
         LOG.info("Validation set has %d images", self.n_val)
         self.num_epochs = unet_parameters["num_epochs"]
-        learning_rate = unet_parameters["learning_rate"]
+        self.learning_rate = unet_parameters["learning_rate"]
         weight_decay = unet_parameters["weight_decay"]
-        self.optimizer = optim.AdamW(self.unet.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        self.optimizer = optim.AdamW(self.unet.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
     def train(self, test, load):
-        LOG.info("Going to iterate for %d epochs", self.num_epochs)
         init_epoch = 0
+        min_valid_loss = np.inf
         if load:
-            LOG.info("Going to load model from %s", self.CHECKPOINT_PATH)
-            self.unet, self.optimizer, init_epoch  = CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH)
+            LOG.info(f'''Going to load model from {self.CHECKPOINT_PATH}''')
+            self.unet, self.optimizer, init_epoch, min_valid_loss = CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH)
+
+        LOG.info(f'''Starting training:
+                            Epochs:          {self.num_epochs - init_epoch}
+                            Batch size:      {self.batch_size}
+                            Learning rate:   {self.learning_rate}
+                            Training size:   {self.n_train}
+                            Validation size: {self.n_val}
+                        ''')
+
         for epoch in range(init_epoch, self.num_epochs):
             self.unet.train()
-            epoch_loss = 0
+            epoch_loss = 0.0
             self.optimizer.zero_grad(set_to_none=True)
             with tqdm(total=self.n_train, desc=f'Epoch {epoch + 1}/{self.num_epochs}', unit='img') as pbar:
                 for ix, (images, labels) in enumerate(self.train_loader):
@@ -100,24 +110,34 @@ class Trainer:
                     pbar.set_postfix(**{'loss (batch)': loss})
 
                     if ix % 50 == 0 and not test:
-                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
+                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix + 1)
                         path = ROOT_PATH + "/logs/trainer/trained_images/trained_image_{}_{}".format(epoch, ix)
                         self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
                                                      prediction[-1, -1, :, :].detach().numpy())
                     if test:
-                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
+                        plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix + 1)
                         path = ROOT_PATH + "/logs/trainer/trained_images/test/trained_image_{}_{}".format(epoch, ix)
                         self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
                                                      prediction[-1, -1, :, :].detach().numpy())
 
-            CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH, epoch)
-            LOG.info("Saving progress for epoch %d with loss %d", epoch, epoch_loss)
+            validation_loss = 0.0
+            self.unet.eval()
+            for images, labels in self.val_loader:
+                images = images.to(device=self.device, dtype=torch.float32)
+                labels = labels.to(device=self.device, dtype=torch.float32)
+                prediction = self.unet(images)
+                loss = self.criterion(prediction, labels)
+                validation_loss = loss.item()
 
-        if test:
-            model_file = ROOT_PATH + "/data/trainer/test/trained_model.pt"
-        else:
-            model_file = ROOT_PATH + "/data/trainer/trained_model.pt"
-        LOG.info("Saving fully trained model to file %s", model_file)
-        CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH, self.num_epochs)
+            LOG.info(f'''Statistics of epoch {epoch}/{self.num_epochs}:
+                                Loss: {epoch_loss:.6f}
+                                Validation loss: {validation_loss:.6f}
+                                Min validation loss: {min_valid_loss:.6f}''')
+            if min_valid_loss > validation_loss:
+                min_valid_loss = validation_loss
+                CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.CHECKPOINT_PATH, epoch,
+                                                  min_valid_loss)
+                LOG.info(f'''Saving progress for epoch {epoch} with loss {epoch_loss:.6f}''')
+
