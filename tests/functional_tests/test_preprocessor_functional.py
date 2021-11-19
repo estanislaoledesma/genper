@@ -13,7 +13,7 @@ class TestPreprocessorFunctional(unittest.TestCase):
 
     def setUp(self):
         preprocessor = Preprocessor(True)
-        self.gs_matrix, self.gd_matrix, self.images = preprocessor.preprocess(True)
+        self.gs_matrix, self.gd_matrix, self.images = preprocessor.preprocess(True, False)
 
     def test_equal_preprocessor_images(self):
         i = 1

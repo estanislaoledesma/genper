@@ -10,8 +10,9 @@ from configs.constants import Constants
 class Plotter:
 
     ORIGINAL_TITLE = "Imagen original"
-    PREPROCESSOR_TITLE = "Imagen obtenida por el preprocesador"
-    PREDICTION_TITLE = "Imagen obtenida por la red neuronal"
+    PREPROCESSOR_TITLE = "Imagen del preprocesador"
+    PREDICTION_TITLE = "Imagen de la red neuronal\n" \
+                       "(Error: {:.2E})"
 
     def __init__(self):
         basic_parameters = Constants.get_basic_parameters()
@@ -20,7 +21,7 @@ class Plotter:
         self.x_max = images_parameters["no_of_pixels"] - 1
         self.y_max = self.x_max
 
-    def plot_comparison(self, plot_title, path, labels, images = None, prediction = None):
+    def plot_comparison(self, plot_title, path, display, labels, images = None, prediction = None, loss = 0):
         plt.close("all")
         no_of_plots = 1
         if images is not None:
@@ -30,24 +31,29 @@ class Plotter:
         figure, axis = plt.subplots(1, no_of_plots, figsize=(15, 15))
         figure.suptitle(plot_title)
 
-        titles = [self.ORIGINAL_TITLE, self.PREPROCESSOR_TITLE, self.PREDICTION_TITLE]
+        titles = [self.ORIGINAL_TITLE, self.PREPROCESSOR_TITLE, self.PREDICTION_TITLE.format(loss)]
         data = [labels, images, prediction]
 
         for plot in range(no_of_plots):
             title = titles[plot]
             data_to_plot = data[plot]
             if no_of_plots > 1:
-                self.plot(axis[plot], title, data_to_plot)
+                self.plot(axis[plot], title, data_to_plot, plot == 0)
             else:
-                self.plot(axis, title, data_to_plot)
-        plt.pause(0.01)
+                self.plot(axis, title, data_to_plot, True)
+        if display:
+            plt.pause(0.01)
         plt.savefig(path)
+        plt.close(figure)
 
-    def plot(self, axis, title, data):
+    def plot(self, axis, title, data, add_y_axis):
         sns.heatmap(ax=axis, data=data, cmap="rocket",
-                    cbar_kws={"label": "Permitividades relativas"})
+                    yticklabels=add_y_axis, cbar_kws={"label": "Permitividades relativas",
+                                                      "orientation": "horizontal"})
+        axis.set_aspect('equal', adjustable='box')
         axis.set_xticks(np.linspace(0, self.x_max, 5))
         axis.set_xticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
-        axis.set_yticks(np.linspace(self.y_max, 0, 5))
-        axis.set_yticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
+        if add_y_axis:
+            axis.set_yticks(np.linspace(self.y_max, 0, 5))
+            axis.set_yticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
         axis.set_title(title)

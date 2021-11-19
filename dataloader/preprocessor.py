@@ -52,7 +52,7 @@ class Preprocessor:
         self.images = dd.io.load(images_path)
         LOG.info("%d images loaded", np.size(self.images))
 
-    def preprocess(self, test):
+    def preprocess(self, test, display):
         image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
         x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
         incident_electric_field = self.electric_field_generator.generate_incident_electric_field(x_domain, y_domain)
@@ -91,11 +91,12 @@ class Preprocessor:
             image.set_preprocessor_guess(permittivities)
             if image_i % 50 == 0 and not test:
                 image.plot_with_preprocessor_guess(image_i, ROOT_PATH +
-                                                   "/logs/preprocessor/preprocessed_images/preprocessed_image_{}".format(image_i))
+                                                   "/logs/preprocessor/preprocessed_images/preprocessed_image_{}"
+                                                   .format(image_i), display)
             if test:
                 image.plot_with_preprocessor_guess(image_i, ROOT_PATH +
-                                                   "/logs/preprocessor/preprocessed_images/test/preprocessed_image_{}".format(
-                                                       image_i))
+                                                   "/logs/preprocessor/preprocessed_images/test/preprocessed_image_{}"
+                                                   .format(image_i), display)
             image_i += 1
 
         if test:

@@ -15,7 +15,7 @@ class TestImageGeneratorFunctional(unittest.TestCase):
 
     def setUp(self):
         image_generator = ImageGenerator(True)
-        self.images = image_generator.generate_images(True)
+        self.images = image_generator.generate_images(True, False)
 
     def test_equal_images(self):
         i = 1

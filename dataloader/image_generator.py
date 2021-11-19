@@ -36,7 +36,7 @@ class ImageGenerator:
         self.circle_generator = CircleGenerator()
         self.electric_field_generator = ElectricFieldGenerator()
 
-    def generate_images(self, test):
+    def generate_images(self, test, display):
         images = []
 
         if test:
@@ -60,9 +60,9 @@ class ImageGenerator:
             image.set_electric_field(electric_field)
             images.append(image)
             if image_i % 50 == 0 and not test:
-                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/image_{}".format(image_i))
+                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/image_{}".format(image_i), display)
             if test:
-                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/test/image_{}".format(image_i))
+                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/test/image_{}".format(image_i), display)
 
         images = np.array(images)
         if test:

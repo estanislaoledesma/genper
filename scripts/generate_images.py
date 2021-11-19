@@ -11,8 +11,10 @@ from dataloader.image_generator import ImageGenerator
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--test", help="Run in test mode", action='store_true')
+    parser.add_argument("-d", "--display", help="Display plots", action='store_true')
     args = parser.parse_args()
     test = args.test
+    display = args.display
 
     image_generator = ImageGenerator(test)
-    image_generator.generate_images(test)
+    image_generator.generate_images(test, display)

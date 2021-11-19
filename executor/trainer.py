@@ -75,7 +75,7 @@ class Trainer:
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
-    def train(self, test, load):
+    def train(self, test, load, display):
         init_epoch = 0
         min_valid_loss = np.inf
         if load:
@@ -113,15 +113,17 @@ class Trainer:
                     if ix % 50 == 0 and not test:
                         plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
                         path = ROOT_PATH + "/logs/trainer/trained_images/trained_image_{}_{}".format(epoch + 1, ix)
-                        self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
+                        self.plotter.plot_comparison(plot_title, path, display, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
-                                                     prediction[-1, -1, :, :].detach().numpy())
+                                                     prediction[-1, -1, :, :].detach().numpy(),
+                                                     loss.item())
                     if test:
                         plot_title = "Epoch {} - Batch {}".format(epoch + 1, ix)
                         path = ROOT_PATH + "/logs/trainer/trained_images/test/trained_image_{}_{}".format(epoch + 1, ix)
-                        self.plotter.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
+                        self.plotter.plot_comparison(plot_title, path, display, labels[-1, -1, :, :].detach().numpy(),
                                                      images[-1, -1, :, :].detach().numpy(),
-                                                     prediction[-1, -1, :, :].detach().numpy())
+                                                     prediction[-1, -1, :, :].detach().numpy(),
+                                                     loss.item())
 
             validation_loss = 0.0
             self.unet.eval()
@@ -133,7 +135,6 @@ class Trainer:
                 validation_loss = loss.item()
 
             LOG.info(f'''Statistics of epoch {epoch + 1}/{self.num_epochs}:
-                                Loss: {epoch_loss:.6f}
                                 Validation loss: {validation_loss:.6f}
                                 Min validation loss: {min_valid_loss:.6f}''')
             if min_valid_loss > validation_loss:
