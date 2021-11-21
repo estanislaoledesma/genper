@@ -34,7 +34,7 @@ class Image:
         return self.electric_field
 
     def plot(self, image_i, path, display):
-        plot_title = "Imagen generada {}".format(image_i)
+        plot_title = "Generated image {}".format(image_i)
         self.plotter.plot_comparison(plot_title, path, display, self.relative_permittivities)
 
     def set_preprocessor_guess(self, preprocessor_guess):
@@ -44,5 +44,5 @@ class Image:
         return self.preprocessor_guess
 
     def plot_with_preprocessor_guess(self, image_i, path, display):
-        plot_title = "Imagen {}".format(image_i)
+        plot_title = "Image {}".format(image_i)
         self.plotter.plot_comparison(plot_title, path, display, self.relative_permittivities, self.preprocessor_guess)

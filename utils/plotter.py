@@ -9,9 +9,9 @@ from configs.constants import Constants
 
 class Plotter:
 
-    ORIGINAL_TITLE = "Imagen original"
-    PREPROCESSOR_TITLE = "Imagen del preprocesador"
-    PREDICTION_TITLE = "Imagen de la red neuronal\n" \
+    ORIGINAL_TITLE = "Original Image"
+    PREPROCESSOR_TITLE = "Image from preprocessor"
+    PREDICTION_TITLE = "Image from unet\n" \
                        "(Error: {:.2E})"
 
     def __init__(self):
@@ -53,7 +53,22 @@ class Plotter:
         axis.set_aspect('equal', adjustable='box')
         axis.set_xticks(np.linspace(0, self.x_max, 5))
         axis.set_xticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
+        axis.set_xlabel("x (m)")
         if add_y_axis:
             axis.set_yticks(np.linspace(self.y_max, 0, 5))
             axis.set_yticklabels(np.linspace(-self.max_diameter, self.max_diameter, 5))
+            axis.set_ylabel("y (m)")
         axis.set_title(title)
+
+    def plot_errors(self, training_errors, validation_errors, path, display):
+        figure= plt.figure(figsize=(15, 15))
+        plt.plot(*zip(*sorted(training_errors.items())), label="Training error")
+        plt.plot(*zip(*sorted(validation_errors.items())), label="Validation error")
+        plt.title("Model Loss")
+        plt.xlabel("epoch")
+        plt.ylabel("loss")
+        plt.legend()
+        if display:
+            plt.pause(0.01)
+        plt.savefig(path)
+        plt.close(figure)
