@@ -17,10 +17,11 @@ class CheckpointManager:
         }, save_path)
 
     @staticmethod
-    def load_checkpoint(model, optimizer, load_path):
+    def load_checkpoint(model, load_path, optimizer = None):
         checkpoint = torch.load(load_path)
         model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        if optimizer != None:
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epoch = checkpoint['epoch']
         min_valid_loss = checkpoint['min_valid_loss']
         training_errors = checkpoint['training_errors']
@@ -33,3 +34,8 @@ class CheckpointManager:
         torch.save({
             'dataset': dataset
         }, save_path)
+
+    @staticmethod
+    def load_dataset(load_path):
+        data = torch.load(load_path)
+        return data['dataset']

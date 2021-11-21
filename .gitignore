@@ -145,6 +145,9 @@ logs/trainer/trained_images/*.png
 logs/trainer/trained_images/test/*.png
 logs/trainer/validation_images/*.png
 logs/trainer/validation_images/test/*.png
+logs/tester/*.log
+logs/trainer/testing_images/*.png
+logs/trainer/testing_images/test/*.png
 
 # Data
 data/image_generator/*.h5

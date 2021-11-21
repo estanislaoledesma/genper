@@ -47,12 +47,12 @@ class Trainer:
         self.val_proportion = unet_parameters["val_proportion"]
         self.test_proportion = unet_parameters["test_proportion"]
         if test:
-            LOG.info("Starting preprocessor in testing mode")
+            LOG.info("Starting trainer in testing mode")
             images_path = ROOT_PATH + "/data/preprocessor/test/preprocessed_images.h5"
             self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pth"
             test_images_file = ROOT_PATH + "/data/trainer/test/test_images.pth"
         else:
-            LOG.info("Starting preprocessor in standard mode")
+            LOG.info("Starting trainer in standard mode")
             images_path = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
             self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pth"
             test_images_file = ROOT_PATH + "/data/trainer/test_images.pth"
@@ -91,7 +91,7 @@ class Trainer:
         if load:
             LOG.info(f'''Going to load model from {self.checkpoint_path}''')
             self.unet, self.optimizer, init_epoch, min_valid_loss, training_errors, validation_errors = \
-                CheckpointManager.load_checkpoint(self.unet, self.optimizer, self.checkpoint_path)
+                CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, optimizer=self.optimizer)
 
         LOG.info(f'''Starting training:
                             Epochs:          {self.num_epochs - init_epoch}
@@ -139,28 +139,29 @@ class Trainer:
             training_loss = training_loss / self.n_train
             training_errors [epoch] = training_loss
             validation_loss = 0.0
-            self.unet.eval()
-            for ix, (images, labels) in enumerate(self.val_loader):
-                images = images.to(device=self.device, dtype=torch.float32)
-                labels = labels.to(device=self.device, dtype=torch.float32)
-                prediction = self.unet(images)
-                loss = self.criterion(prediction, labels)
-                validation_loss += loss.item()
+            with torch.no_grad():
+                self.unet.eval()
+                for ix, (images, labels) in enumerate(self.val_loader):
+                    images = images.to(device=self.device, dtype=torch.float32)
+                    labels = labels.to(device=self.device, dtype=torch.float32)
+                    prediction = self.unet(images)
+                    loss = self.criterion(prediction, labels)
+                    validation_loss += loss.item()
 
-                if ix % 5 == 0 and not test:
-                    plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
-                    path = ROOT_PATH + "/logs/trainer/validation_images/validation_image_{}_{}".format(epoch, ix)
-                    self.plotter.plot_comparison(plot_title, path, display, labels[-1, -1, :, :].detach().numpy(),
-                                                 images[-1, -1, :, :].detach().numpy(),
-                                                 prediction[-1, -1, :, :].detach().numpy(),
-                                                 loss.item())
-                if test:
-                    plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
-                    path = ROOT_PATH + "/logs/trainer/validation_images/test/validation_image_{}_{}".format(epoch, ix)
-                    self.plotter.plot_comparison(plot_title, path, display, labels[-1, -1, :, :].detach().numpy(),
-                                                 images[-1, -1, :, :].detach().numpy(),
-                                                 prediction[-1, -1, :, :].detach().numpy(),
-                                                 loss.item())
+                    if ix % 5 == 0 and not test:
+                        plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
+                        path = ROOT_PATH + "/logs/trainer/validation_images/validation_image_{}_{}".format(epoch, ix)
+                        self.plotter.plot_comparison(plot_title, path, display, labels[-1, -1, :, :].detach().numpy(),
+                                                     images[-1, -1, :, :].detach().numpy(),
+                                                     prediction[-1, -1, :, :].detach().numpy(),
+                                                     loss.item())
+                    if test:
+                        plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
+                        path = ROOT_PATH + "/logs/trainer/validation_images/test/validation_image_{}_{}".format(epoch, ix)
+                        self.plotter.plot_comparison(plot_title, path, display, labels[-1, -1, :, :].detach().numpy(),
+                                                     images[-1, -1, :, :].detach().numpy(),
+                                                     prediction[-1, -1, :, :].detach().numpy(),
+                                                     loss.item())
             validation_loss = validation_loss / self.n_val
             validation_errors[epoch] = validation_loss
 
