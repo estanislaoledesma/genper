@@ -27,7 +27,7 @@ class ImageGenerator:
         images_parameters = basic_parameters["images"]
         if test:
             LOG.info("Starting image generator in testing mode")
-            self.no_of_images = 5
+            self.no_of_images = 10
         else:
             LOG.info("Starting image generator in standard mode")
             self.no_of_images = images_parameters["no_of_images"]

@@ -25,11 +25,11 @@ class Tester:
         if test:
             LOG.info("Starting tester in testing mode")
             self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pt"
-            test_images_file = ROOT_PATH + "/data/trainer/test/test_images.pt"
+            test_images_file = ROOT_PATH + "/data/trainer/test/datasets.pt"
         else:
             LOG.info("Starting tester in standard mode")
             self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pt"
-            test_images_file = ROOT_PATH + "/data/trainer/test_images.pt"
+            test_images_file = ROOT_PATH + "/data/trainer/datasets.pt"
         self.unet = UNet()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.unet.to(device=self.device)
@@ -56,11 +56,13 @@ class Tester:
                 if ix % 5 == 0 and not test:
                     plot_title = "Testing - Batch {}".format(ix)
                     path = ROOT_PATH + "/logs/tester/testing_images/testing_image_{}".format(ix)
+                    LOG.info(f'''Saving testing image plot to path {path}''')
                     self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
                                                  images, prediction, loss.item())
                 if test:
                     plot_title = "Testing - Batch {}".format(ix)
                     path = ROOT_PATH + "/logs/tester/testing_images/test/testing_image_{}".format(ix)
+                    LOG.info(f'''Saving testing image plot to path {path}''')
                     self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
                                                  images, prediction,  loss.item())
 

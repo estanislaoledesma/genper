@@ -21,7 +21,8 @@ class CircleGenerator:
     def generate_circles(self, no_of_circles, test, image_i):
         circles = []
 
-        test_random_values = [[0, 0.5], [0.5, 0.9], [0.8, 0], [1, 0.4], [0.9, 0.2]]
+        test_random_values = [[0, 0.5], [0.3, 0.9], [0, 0.8], [0.5, 0.6], [0.5, 0.9],
+                              [0.8, 0], [0.5, 0.1], [1, 0.4], [0.9, 0.2], [1, 0]]
         for i in range(no_of_circles):
             if test:
                 radius = self.min_radius + (self.max_radius - self.min_radius) * test_random_values[image_i - 1][i]

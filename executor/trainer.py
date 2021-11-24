@@ -46,7 +46,7 @@ class Trainer:
         if test:
             LOG.info("Starting trainer in testing mode")
             preprocessed_images_path = ROOT_PATH + "/data/preprocessor/test/preprocessed_images.h5"
-            self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pt"
+            self.checkpoint_path = ROOT_PATH + "/data/trainer/test/trained_model.pt"
             datasets_path = ROOT_PATH + "/data/trainer/test/datasets.pt"
         else:
             LOG.info("Starting trainer in standard mode")
@@ -187,8 +187,8 @@ class Trainer:
                                                               images, prediction, loss.item())
                 if test:
                     plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
-                    LOG.info(f'''Saving validation image plot to path {path}''')
                     path = ROOT_PATH + "/logs/trainer/validation_images/test/validation_image_{}_{}.png".format(epoch, ix)
-                    self.plotter.plot_comparison(plot_title, path, labels, images,
+                    LOG.info(f'''Saving validation image plot to path {path}''')
+                    self.plotter.plot_comparison_with_tensors(plot_title, path, labels, images,
                                                  prediction, loss.item())
         return validation_loss / len(self.val_loader)
