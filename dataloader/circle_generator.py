@@ -24,12 +24,12 @@ class CircleGenerator:
         test_random_values = [[0, 0.5], [0.5, 0.9], [0.8, 0], [1, 0.4], [0.9, 0.2]]
         for i in range(no_of_circles):
             if test:
-                radius = self.min_radius + (self.max_radius - self.min_radius) * test_random_values[image_i][i]
+                radius = self.min_radius + (self.max_radius - self.min_radius) * test_random_values[image_i - 1][i]
                 center_range = [-1 + radius + 0.05, 1 - radius - 0.05]
-                center_x = center_range[0] + (center_range[1] - center_range[0]) * test_random_values[image_i][i]
-                center_y = center_range[0] + (center_range[1] - center_range[0]) * test_random_values[image_i][i]
+                center_x = center_range[0] + (center_range[1] - center_range[0]) * test_random_values[image_i - 1][i]
+                center_y = center_range[0] + (center_range[1] - center_range[0]) * test_random_values[image_i - 1][i]
                 relative_permittivity = self.min_permittivity + (
-                            self.max_permittivity - self.min_permittivity) * test_random_values[image_i][i]
+                            self.max_permittivity - self.min_permittivity) * test_random_values[image_i - 1][i]
             else:
                 radius = self.min_radius + (self.max_radius - self.min_radius) * np.random.uniform()
                 center_range = [-1 + radius + 0.05, 1 - radius - 0.05]

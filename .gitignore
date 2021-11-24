@@ -154,8 +154,8 @@ data/image_generator/*.h5
 data/image_generator/test/*.h5
 data/preprocessor/*.h5
 data/preprocessor/test/*.h5
-data/trainer/*.pth
-data/trainer/test/*.pth
+data/trainer/*.pt
+data/trainer/test/*.pt
 
 # Model checkpoints
 executor/checkpoints/*.pt

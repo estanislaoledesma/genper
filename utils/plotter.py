@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import gc
+
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -21,14 +25,20 @@ class Plotter:
         self.x_max = images_parameters["no_of_pixels"] - 1
         self.y_max = self.x_max
 
-    def plot_comparison(self, plot_title, path, display, labels, images = None, prediction = None, loss = 0):
+    def plot_comparison_with_tensors(self, plot_title, path, labels, images, prediction, loss = 0):
+        self.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
+                                                 images[-1, -1, :, :].detach().numpy(),
+                                                 prediction[-1, -1, :, :].detach().numpy(), loss = loss)
+
+    def plot_comparison(self, plot_title, path, labels, images = None, prediction = None, loss = 0):
         plt.close("all")
         no_of_plots = 1
         if images is not None:
             no_of_plots = 2
         if prediction is not None:
             no_of_plots = 3
-        figure, axis = plt.subplots(1, no_of_plots, figsize=(15, 15))
+        figure = plt.figure(figsize=(15, 15))
+        axis = figure.subplots(1, no_of_plots)
         figure.suptitle(plot_title)
 
         titles = [self.ORIGINAL_TITLE, self.PREPROCESSOR_TITLE, self.PREDICTION_TITLE.format(loss)]
@@ -41,10 +51,8 @@ class Plotter:
                 self.plot(axis[plot], title, data_to_plot, plot == 0)
             else:
                 self.plot(axis, title, data_to_plot, True)
-        if display:
-            plt.pause(0.01)
         plt.savefig(path)
-        plt.close(figure)
+        plt.close("all")
 
     def plot(self, axis, title, data, add_y_axis):
         sns.heatmap(ax=axis, data=data, cmap="rocket",
@@ -60,7 +68,7 @@ class Plotter:
             axis.set_ylabel("y (m)")
         axis.set_title(title)
 
-    def plot_errors(self, training_errors, validation_errors, path, display):
+    def plot_errors(self, training_errors, validation_errors, path):
         figure= plt.figure(figsize=(15, 15))
         plt.plot(*zip(*sorted(training_errors.items())), label="Training error")
         plt.plot(*zip(*sorted(validation_errors.items())), label="Validation error")
@@ -68,7 +76,5 @@ class Plotter:
         plt.xlabel("epoch")
         plt.ylabel("loss")
         plt.legend()
-        if display:
-            plt.pause(0.01)
         plt.savefig(path)
-        plt.close(figure)
+        plt.close("all")

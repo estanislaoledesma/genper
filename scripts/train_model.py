@@ -13,11 +13,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--test", help="Run in test mode", action='store_true')
     parser.add_argument("-l", "--load", help="Load latest checkpoint", action='store_true')
-    parser.add_argument("-d", "--display", help="Display plots", action='store_true')
     args = parser.parse_args()
     test = args.test
     load = args.load
-    display = args.display
 
-    trainer = Trainer(test)
-    trainer.train(test, load, display)
+    trainer = Trainer(test, load)
+    trainer.train(test, load)

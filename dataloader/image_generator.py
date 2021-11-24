@@ -36,7 +36,7 @@ class ImageGenerator:
         self.circle_generator = CircleGenerator()
         self.electric_field_generator = ElectricFieldGenerator()
 
-    def generate_images(self, test, display):
+    def generate_images(self, test):
         images = []
 
         if test:
@@ -44,7 +44,7 @@ class ImageGenerator:
         else:
             LOG.info("%d images with random number of circles (between 1 and 3) will be generated", self.no_of_images)
 
-        for image_i in range(self.no_of_images):
+        for image_i in range(1, self.no_of_images + 1):
             LOG.info("Generating image no. %d/%d", image_i, self.no_of_images)
             image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
             x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
@@ -60,9 +60,13 @@ class ImageGenerator:
             image.set_electric_field(electric_field)
             images.append(image)
             if image_i % 50 == 0 and not test:
-                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/image_{}".format(image_i), display)
+                image_path = ROOT_PATH + "/logs/image_generator/images/image_{}.png".format(image_i)
+                LOG.info(f'''Saving generated image plot to path {image_path}''')
+                image.plot(image_i, image_path)
             if test:
-                image.plot(image_i, ROOT_PATH + "/logs/image_generator/images/test/image_{}".format(image_i), display)
+                image_path = ROOT_PATH + "/logs/image_generator/images/test/image_{}.png".format(image_i)
+                LOG.info(f'''Saving generated image plot to path {image_path}''')
+                image.plot(image_i, image_path)
 
         images = np.array(images)
         if test:

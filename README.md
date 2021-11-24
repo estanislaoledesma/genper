@@ -38,23 +38,22 @@ Contiene los scripts para ejecutar cada parte del código por separado.
 Mediante este script se llama al generador de imágenes, el cual generará un archivo images.h5 dentro de data/image_generator,  
 el cual será utilizado por el preprocesador. También generará los correspondientes logs dentro de logs/image_generator junto 
 con algunos archivos png de muestra de las imágenes generadas. Se le puede pasar la opción *-t* o *--test* para ejecutar 
-en modo testing y *-d* o *--display* para mostrar las imágenes a medida que se generan.
+en modo testing.
 
 #### preprocess_images.py
 Mediante este script se llama al preprocesador de imágenes, el cual cargará el archivo images.h5 generado por el generador 
 de imágenes dentro de data/image_generator. A estas imágenes las procesará y generará su correspondiente archivo 
 preprocessed_images.h5 dentro de data/preprocessor. También generará los correspondientes logs dentro de logs/preprocessor. 
-Se le puede pasar la opción *-t* o *--test* para ejecutar en modo testing y *-d* o *--display* para mostrar las imágenes a 
-medida que se preprocesan.
+Se le puede pasar la opción *-t* o *--test* para ejecutar en modo testing.
 
 #### train_model.py
 Mediante este script se llama al entrenador del modelo, el cual creará la red neuronal u-net basado en los parámetros 
 configurables dentro de configs/basic_parameters.json. También cargará el set de datos generado por *preprocess_images.py*, 
 el cual será dividido en tres, un set de entrenamiento, otro de validación y un último de testing de manera aleatoria. 
-Entrenará y validará el modelo, el cual será guardado en data/trainer/trained_model.pth. El set de datos de testing será 
-guardado en data/trainer/test_images.pth También generará los correspondientes logs dentro de logs/trainer.
+Entrenará y validará el modelo, el cual será guardado en data/trainer/trained_model.pt. El set de datos de testing será 
+guardado en data/trainer/test_images.pt También generará los correspondientes logs dentro de logs/trainer.
 Se le puede pasar la opción *-t* o *--test* para ejecutar en modo testing, *-l* o *--load* para retomar un entrenamiento 
-previamente interrumpido y *-d* o *--display* para mostrar las imágenes a medida que se entrena y valida el modelo.
+previamente interrumpido.
 
 ### tests
 Contiene todos los archivos de tests.
