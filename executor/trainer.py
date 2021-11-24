@@ -53,11 +53,13 @@ class Trainer:
             preprocessed_images_path = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
             self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pt"
             datasets_path = ROOT_PATH + "/data/trainer/datasets.pt"
+        LOG.info(f'''Using device: {self.device}''')
         self.load_datasets(load, preprocessed_images_path, datasets_path)
         self.num_epochs = unet_parameters["num_epochs"]
         self.learning_rate = unet_parameters["learning_rate"]
         weight_decay = unet_parameters["weight_decay"]
         self.optimizer = optim.AdamW(self.unet.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
+        self.grad_scaler = torch.cuda.amp.GradScaler(enabled=torch.cuda.is_available())
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
@@ -89,14 +91,18 @@ class Trainer:
                 for ix, (images, labels) in enumerate(self.train_loader):
                     images = images.to(device=self.device, dtype=torch.float32)
                     labels = labels.to(device=self.device, dtype=torch.float32)
-                    prediction = self.unet(images)
-                    loss = self.criterion(prediction, labels)
+                    with torch.cuda.amp.autocast(enabled=torch.cuda.is_available()):
+                        prediction = self.unet(images)
+                        loss = self.criterion(prediction, labels)
+
                     loss = loss / self.accumulation_steps
                     training_loss += loss.item()
-                    loss.backward()
+                    self.grad_scaler.scale(loss).backward()
                     if (ix + 1) % self.accumulation_steps == 0:
-                        self.optimizer.step()
                         self.optimizer.zero_grad(set_to_none=True)
+                        self.grad_scaler.step(self.optimizer)
+                        self.grad_scaler.update()
+
                     pbar.update(len(images))
                     pbar.set_postfix(**{'loss (batch)': loss.item()})
 
