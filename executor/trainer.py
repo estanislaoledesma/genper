@@ -102,13 +102,13 @@ class Trainer:
 
                     if ix % 50 == 0 and not test:
                         plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
-                        path = ROOT_PATH + "/logs/trainer/trained_images/trained_image_{}_{}.png".format(epoch, ix)
+                        path = ROOT_PATH + "/logs/trainer/training_images/trained_image_{}_{}.png".format(epoch, ix)
                         LOG.info(f'''Saving trained image plot to path {path}''')
                         self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
                                                      images, prediction, loss.item())
                     if test:
                         plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
-                        path = ROOT_PATH + "/logs/trainer/trained_images/test/trained_image_{}_{}.png".format(epoch, ix)
+                        path = ROOT_PATH + "/logs/trainer/training_images/test/trained_image_{}_{}.png".format(epoch, ix)
                         LOG.info(f'''Saving trained image plot to path {path}''')
                         self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
                                                      images, prediction, loss.item())

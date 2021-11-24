@@ -141,8 +141,8 @@ logs/preprocessor/preprocessed_images/test/*.png
 logs/trainer/*.log
 logs/trainer/*.png
 logs/trainer/test/*.png
-logs/trainer/trained_images/*.png
-logs/trainer/trained_images/test/*.png
+logs/trainer/training_images/*.png
+logs/trainer/training_images/test/*.png
 logs/trainer/validation_images/*.png
 logs/trainer/validation_images/test/*.png
 logs/tester/*.log
