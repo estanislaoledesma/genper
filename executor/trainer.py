@@ -38,14 +38,6 @@ class Trainer:
         self.accumulation_steps = unet_parameters["accumulation_steps"]
         self.num_sub_batches = unet_parameters["num_sub_batches"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.unet = UNet()
-        if torch.cuda.device_count() > 1:
-            print("Let's use", torch.cuda.device_count(), "GPUs!")
-            self.unet = nn.DataParallel(self.unet)
-        self.unet.to(device=self.device)
-        self.val_proportion = unet_parameters["val_proportion"]
-        self.test_proportion = unet_parameters["test_proportion"]
         if test:
             LOG.info("Starting trainer in testing mode")
             preprocessed_images_path = ROOT_PATH + "/data/preprocessor/test/preprocessed_images.h5"
@@ -56,7 +48,16 @@ class Trainer:
             preprocessed_images_path = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
             self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pt"
             datasets_path = ROOT_PATH + "/data/trainer/datasets.pt"
+
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.unet = UNet()
         LOG.info(f'''Using device: {self.device}''')
+        if torch.cuda.device_count() > 1:
+            print("Using ", torch.cuda.device_count(), " GPUs.")
+            self.unet = nn.DataParallel(self.unet)
+        self.unet.to(device=self.device)
+        self.val_proportion = unet_parameters["val_proportion"]
+        self.test_proportion = unet_parameters["test_proportion"]
         self.load_datasets(load, preprocessed_images_path, datasets_path)
         self.num_epochs = unet_parameters["num_epochs"]
         self.learning_rate = unet_parameters["learning_rate"]
@@ -75,7 +76,7 @@ class Trainer:
         if load:
             LOG.info(f'''Going to load model from {self.checkpoint_path}''')
             self.unet, self.optimizer, init_epoch, min_valid_loss, training_errors, validation_errors, time_elapsed = \
-                CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, optimizer=self.optimizer)
+                CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, self.device, optimizer=self.optimizer)
 
         LOG.info(f'''Starting training:
                             Total epochs:    {self.num_epochs}
@@ -152,7 +153,7 @@ class Trainer:
     def load_datasets(self, load, images_path, datasets_path):
         if load:
             LOG.info(f'''Loading training and validation testing datasets from {datasets_path}''')
-            self.train_loader, self.val_loader, _ = CheckpointManager.load_datasets(datasets_path)
+            self.train_loader, self.val_loader, _ = CheckpointManager.load_datasets(datasets_path, self.device)
         else:
             LOG.info("Loading preprocessed images from file %s", images_path)
             transform = transforms.ToTensor()
@@ -166,7 +167,7 @@ class Trainer:
             LOG.info("Test set has %d images", n_test)
             train_set, val_set, test_set = random_split(preprocessed_images, [n_train, n_val, n_test],
                                                         generator=torch.Generator().manual_seed(0))
-            loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=False)
+            loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
             self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
             self.val_loader = DataLoader(val_set, shuffle=True, drop_last=True, **loader_args)
             test_loader = DataLoader(test_set, shuffle=True, drop_last=True, **loader_args)

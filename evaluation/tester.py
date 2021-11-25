@@ -36,9 +36,9 @@ class Tester:
         self.unet.to(device=self.device)
         LOG.info(f'''Going to load model from {self.checkpoint_path}''')
         self.unet, _, _, _, _, _, _ = \
-            CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path)
+            CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, self.device)
         self.criterion = nn.MSELoss()
-        _, _, self.testing_loader = CheckpointManager.load_datasets(test_images_file)
+        _, _, self.testing_loader = CheckpointManager.load_datasets(test_images_file, self.device)
         LOG.info("%d testing images loaded", len(self.testing_loader))
         self.plotter = Plotter()
 

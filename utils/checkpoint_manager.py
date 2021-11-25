@@ -18,8 +18,8 @@ class CheckpointManager:
         }, save_path)
 
     @staticmethod
-    def load_checkpoint(model, load_path, optimizer = None):
-        checkpoint = torch.load(load_path)
+    def load_checkpoint(model, load_path, device, optimizer=None):
+        checkpoint = torch.load(load_path, map_location=device)
         model.load_state_dict(checkpoint['model_state_dict'])
         if optimizer is not None:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -49,8 +49,8 @@ class CheckpointManager:
         }, save_path)
 
     @staticmethod
-    def load_datasets(load_path):
-        datasets = torch.load(load_path)
+    def load_datasets(load_path, device):
+        datasets = torch.load(load_path, map_location=device)
         train_loader = datasets['train_loader']
         val_loader = datasets['val_loader']
         test_loader = datasets['test_loader']
