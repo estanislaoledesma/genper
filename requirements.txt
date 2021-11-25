@@ -1,5 +1,4 @@
 torch==1.10.0
-cudatoolkit==11.1
 tqdm==4.62.3
 scipy==1.7.1
 deepdish==0.3.6
