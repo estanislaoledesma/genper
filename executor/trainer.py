@@ -103,18 +103,18 @@ class Trainer:
                     pbar.update(len(images))
                     pbar.set_postfix(**{'loss (batch)': loss.item()})
 
-                    if ix % 50 == 0 and not test:
-                        plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
-                        path = ROOT_PATH + "/logs/trainer/training_images/trained_image_{}_{}.png".format(epoch, ix)
-                        LOG.info(f'''Saving trained image plot to path {path}''')
-                        self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
-                                                     images, prediction, loss.item())
-                    if test:
-                        plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
-                        path = ROOT_PATH + "/logs/trainer/training_images/test/trained_image_{}_{}.png".format(epoch, ix)
-                        LOG.info(f'''Saving trained image plot to path {path}''')
-                        self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
-                                                     images, prediction, loss.item())
+                    # if ix % 50 == 0 and not test:
+                    #     plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
+                    #     path = ROOT_PATH + "/logs/trainer/training_images/trained_image_{}_{}.png".format(epoch, ix)
+                    #     LOG.info(f'''Saving trained image plot to path {path}''')
+                    #     self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
+                    #                                  images, prediction, loss.item())
+                    # if test:
+                    #     plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
+                    #     path = ROOT_PATH + "/logs/trainer/training_images/test/trained_image_{}_{}.png".format(epoch, ix)
+                    #     LOG.info(f'''Saving trained image plot to path {path}''')
+                    #     self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
+                    #                                  images, prediction, loss.item())
 
             training_loss = training_loss / len(self.train_loader)
             training_errors [epoch] = training_loss
@@ -182,16 +182,16 @@ class Trainer:
                 loss = self.criterion(prediction, labels)
                 validation_loss += loss.item()
 
-                if ix % 5 == 0 and not test:
-                    plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
-                    path = ROOT_PATH + "/logs/trainer/validation_images/validation_image_{}_{}.png".format(epoch, ix)
-                    LOG.info(f'''Saving validation image plot to path {path}''')
-                    self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
-                                                              images, prediction, loss.item())
-                if test:
-                    plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
-                    path = ROOT_PATH + "/logs/trainer/validation_images/test/validation_image_{}_{}.png".format(epoch, ix)
-                    LOG.info(f'''Saving validation image plot to path {path}''')
-                    self.plotter.plot_comparison_with_tensors(plot_title, path, labels, images,
-                                                 prediction, loss.item())
+                # if ix % 5 == 0 and not test:
+                #     plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
+                #     path = ROOT_PATH + "/logs/trainer/validation_images/validation_image_{}_{}.png".format(epoch, ix)
+                #     LOG.info(f'''Saving validation image plot to path {path}''')
+                #     self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
+                #                                               images, prediction, loss.item())
+                # if test:
+                #     plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
+                #     path = ROOT_PATH + "/logs/trainer/validation_images/test/validation_image_{}_{}.png".format(epoch, ix)
+                #     LOG.info(f'''Saving validation image plot to path {path}''')
+                #     self.plotter.plot_comparison_with_tensors(plot_title, path, labels, images,
+                #                                  prediction, loss.item())
         return validation_loss / len(self.val_loader)
