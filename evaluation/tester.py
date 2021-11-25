@@ -32,6 +32,7 @@ class Tester:
             test_images_file = ROOT_PATH + "/data/trainer/datasets.pt"
         self.unet = UNet()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        LOG.info(f'''Using device: {self.device}''')
         self.unet.to(device=self.device)
         LOG.info(f'''Going to load model from {self.checkpoint_path}''')
         self.unet, _, _, _, _, _, _ = \

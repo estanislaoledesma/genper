@@ -26,9 +26,9 @@ class Plotter:
         self.y_max = self.x_max
 
     def plot_comparison_with_tensors(self, plot_title, path, labels, images, prediction, loss = 0):
-        self.plot_comparison(plot_title, path, labels[-1, -1, :, :].detach().numpy(),
-                                                 images[-1, -1, :, :].detach().numpy(),
-                                                 prediction[-1, -1, :, :].detach().numpy(), loss = loss)
+        self.plot_comparison(plot_title, path, labels[-1, -1, :, :].cpu().detach().numpy(),
+                                                 images[-1, -1, :, :].cpu().detach().numpy(),
+                                                 prediction[-1, -1, :, :].cpu().detach().numpy(), loss = loss)
 
     def plot_comparison(self, plot_title, path, labels, images = None, prediction = None, loss = 0):
         plt.close("all")
