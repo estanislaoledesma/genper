@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import torch
 from torch import nn
 
 from configs.constants import Constants
@@ -28,8 +28,9 @@ class ConvolutionBlock(nn.Module):
             self.relu = nn.ReLU()
 
     def forward(self, x):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         new_weight = WeightScaler.get_weights_scaled(self.conv.weight, self.weight_scale_init_method, self.height,
-                                                     self.width, self.in_channels, self.out_channels)
+                                                     self.width, self.in_channels, self.out_channels).to(device=device, dtype=torch.float32)
         x = self.conv._conv_forward(x, new_weight, self.conv.bias)
         if self.batch_on:
             x = self.bnorm(x)

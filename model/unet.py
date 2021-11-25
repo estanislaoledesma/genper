@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
+import torch
 from torch import nn
 
 from configs.constants import Constants
