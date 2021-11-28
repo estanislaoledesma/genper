@@ -16,7 +16,8 @@
             "min_permittivity": 1.001,
             "max_permittivity": 1.5,
             "receiver_radius": 3,
-            "transmitter_radius": 3
+            "transmitter_radius": 3,
+            "permittivity_coefficient": 10
         },
     "images":
         {
@@ -24,6 +25,30 @@
             "no_of_pixels": 64,
             "min_radius": 0.15,
             "max_radius": 0.4,
-            "no_of_images": 500
+            "no_of_images": 500,
+            "test_percentage": 0.05
+        },
+    "unet":
+        {
+            "in_channels": 1,
+            "out_channels": 1,
+            "use_gpu": false,
+            "scale": 1,
+            "weight_scale_init_method": "gaussian",
+            "batch_normalization": true,
+            "kernel_size": 3,
+            "stride": 1,
+            "batch_on": true,
+            "relu_on": true,
+            "reg_num": 3,
+            "val_proportion": 0.15,
+            "test_proportion": 0.15,
+            "num_epochs": 200,
+            "batch_size": 1,
+            "accumulation_steps": 5,
+            "num_sub_batches": 1,
+            "learning_rate": 1e-2,
+            "weight_decay": 1e-8,
+            "momentum": 0.9
         }
 }

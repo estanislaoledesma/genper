@@ -23,7 +23,7 @@ class TestImageGeneratorFunctional(unittest.TestCase):
             image_python = image.get_relative_permittivities()
             image_matlab_file_name = ROOT_PATH + "/tests/functional_tests/matlab_files/image_{}_matlab.csv".format(i)
             image_matlab = np.genfromtxt(image_matlab_file_name, delimiter=",")
-            are_equal = np.array_equal(image_python, image_matlab)
+            are_equal = np.allclose(image_python, image_matlab)
             self.assertTrue(are_equal)
             i += 1
 

@@ -63,7 +63,7 @@ class Preprocessor:
         gs_matrix = self.generate_gs_matrix(x_domain, y_domain)
         gd_matrix = self.generate_gd_matrix(x_domain, y_domain)
 
-        image_i = 0
+        image_i = 1
         for image in self.images:
             LOG.info("Preprocessing image no. %d/%d", image_i, np.size(self.images))
             electric_field = image.get_electric_field().get_electric_field()
@@ -90,12 +90,13 @@ class Preprocessor:
             permittivities = np.reshape(epsilon, (self.no_of_pixels, self.no_of_pixels), order="F")
             image.set_preprocessor_guess(permittivities)
             if image_i % 50 == 0 and not test:
-                image.plot_with_preprocessor_guess(image_i, ROOT_PATH +
-                                                   "/logs/preprocessor/preprocessed_images/preprocessed_image_{}".format(image_i))
+                image_path = ROOT_PATH + "/logs/preprocessor/preprocessed_images/preprocessed_image_{}.png".format(image_i)
+                LOG.info(f'''Saving preprocessed image plot to path {image_path}''')
+                image.plot_with_preprocessor_guess(image_i, image_path)
             if test:
-                image.plot_with_preprocessor_guess(image_i, ROOT_PATH +
-                                                   "/logs/preprocessor/preprocessed_images/test/preprocessed_image_{}".format(
-                                                       image_i))
+                image_path = ROOT_PATH + "/logs/preprocessor/preprocessed_images/test/preprocessed_image_{}.png".format(image_i)
+                LOG.info(f'''Saving preprocessed image plot to path {image_path}''')
+                image.plot_with_preprocessor_guess(image_i, image_path)
             image_i += 1
 
         if test:
