@@ -10,7 +10,7 @@ partir de sus datos de dispersión.
 ### configs
 Contiene todos los hiperparámetros, rutas de archivos y cualquier cosa configurable del proyecto.
 
-### dataloader
+### data
 Contiene todos los archivos generados durante el procesamiento del software.
 
 ### dataloader
@@ -45,6 +45,15 @@ Mediante este script se llama al preprocesador de imágenes, el cual cargará el
 de imágenes dentro de data/image_generator. A estas imágenes las procesará y generará su correspondiente archivo 
 preprocessed_images.h5 dentro de data/preprocessor. También generará los correspondientes logs dentro de logs/preprocessor. 
 Se le puede pasar la opción *-t* o *--test* para ejecutar en modo testing.
+
+#### train_model.py
+Mediante este script se llama al entrenador del modelo, el cual creará la red neuronal u-net basado en los parámetros 
+configurables dentro de configs/basic_parameters.json. También cargará el set de datos generado por *preprocess_images.py*, 
+el cual será dividido en tres, un set de entrenamiento, otro de validación y un último de testing de manera aleatoria. 
+Entrenará y validará el modelo, el cual será guardado en data/trainer/trained_model.pt. El set de datos de testing será 
+guardado en data/trainer/test_images.pt También generará los correspondientes logs dentro de logs/trainer.
+Se le puede pasar la opción *-t* o *--test* para ejecutar en modo testing, *-l* o *--load* para retomar un entrenamiento 
+previamente interrumpido.
 
 ### tests
 Contiene todos los archivos de tests.

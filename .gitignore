@@ -138,9 +138,24 @@ logs/image_generator/images/test/*.png
 logs/preprocessor/*.log
 logs/preprocessor/preprocessed_images/*.png
 logs/preprocessor/preprocessed_images/test/*.png
+logs/trainer/*.log
+logs/trainer/*.png
+logs/trainer/test/*.png
+logs/trainer/training_images/*.png
+logs/trainer/training_images/test/*.png
+logs/trainer/validation_images/*.png
+logs/trainer/validation_images/test/*.png
+logs/tester/*.log
+logs/tester/testing_images/*.png
+logs/tester/testing_images/test/*.png
 
 # Data
 data/image_generator/*.h5
 data/image_generator/test/*.h5
 data/preprocessor/*.h5
 data/preprocessor/test/*.h5
+data/trainer/*.pt
+data/trainer/test/*.pt
+
+# Model checkpoints
+executor/checkpoints/*.pt
