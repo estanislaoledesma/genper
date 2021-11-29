@@ -17,5 +17,12 @@ if __name__ == "__main__":
     test = args.test
     load = args.load
 
-    trainer = Trainer(test, load)
-    trainer.train(test, load)
+    preprocessed_images_path_prefix = "/data/preprocessor/"
+    checkpoint_path_prefix = "/data/trainer/"
+    training_logs_plots_path_prefix = "/logs/trainer/training_images/"
+    validation_logs_plots_path_prefix = "/logs/trainer/validation_images/"
+    error_logs_plots_path_prefix = "/logs/trainer/"
+    plot_interval = 50
+    trainer = Trainer(test, load, False, preprocessed_images_path_prefix, checkpoint_path_prefix)
+    trainer.train(test, load, plot_interval, training_logs_plots_path_prefix, validation_logs_plots_path_prefix,
+                  error_logs_plots_path_prefix)

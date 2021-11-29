@@ -14,5 +14,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
 
-    preprocessor = Preprocessor(test)
-    preprocessor.preprocess(test)
+    generated_images_path_prefix = "/data/image_generator/"
+    logs_plots_path_prefix = "/logs/preprocessor/preprocessed_images/"
+    preprocessed_images_path_prefix = "/data/preprocessor/"
+    plot_interval = 50
+    preprocessor = Preprocessor(False, generated_images_path_prefix)
+    preprocessor.preprocess(False, plot_interval, logs_plots_path_prefix, preprocessed_images_path_prefix)

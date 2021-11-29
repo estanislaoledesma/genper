@@ -11,7 +11,10 @@ from utils.plotter import Plotter
 
 class Image:
 
-    def __init__(self, x_domain, y_domain, circles):
+    def __init__(self):
+        self.plotter = Plotter()
+
+    def generate_relative_permittivities(self, x_domain, y_domain, circles):
         self.circles = circles
         self.relative_permittivities = np.ones(np.shape(y_domain))
         for circle in circles:
@@ -22,7 +25,9 @@ class Image:
             dist_to_center = np.sqrt(np.power(x_domain - center_x, 2) + np.power(y_domain - center_y, 2))
             pixel_belongs_to_circle = dist_to_center < radius
             self.relative_permittivities[pixel_belongs_to_circle] = relative_permittivity
-        self.plotter = Plotter()
+
+    def set_relative_permittivities(self, relative_permittivities):
+        self.relative_permittivities = relative_permittivities
 
     def get_relative_permittivities(self):
         return self.relative_permittivities
