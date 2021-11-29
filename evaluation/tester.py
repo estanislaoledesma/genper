@@ -7,13 +7,13 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
-import deepdish as dd
 
 from configs.constants import Constants
 from configs.logger import Logger
 from dataloader.image_dataset import ImageDataset
 from model.unet import UNet
 from utils.checkpoint_manager import CheckpointManager
+from utils.file_manager import FileManager
 from utils.plotter import Plotter
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -46,10 +46,10 @@ class Tester:
             CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, self.device)
         self.criterion = nn.MSELoss()
         if mnist:
-            test_images_file = test_images_path_prefix + "preprocessed_images.h5"
+            test_images_file = test_images_path_prefix + "preprocessed_images.pkl"
             LOG.info("Loading MNIST preprocessed images from file %s", test_images_file)
             transform = transforms.ToTensor()
-            preprocessed_images = ImageDataset(dd.io.load(test_images_file), transform=transform)
+            preprocessed_images = ImageDataset(FileManager.load(test_images_file), transform=transform)
             LOG.info("%d MNIST preprocessed images loaded", len(preprocessed_images))
             loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
             self.testing_loader = DataLoader(preprocessed_images, shuffle=True, drop_last=True, **loader_args)

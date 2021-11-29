@@ -14,10 +14,10 @@ from configs.constants import Constants
 from configs.logger import Logger
 from dataloader.image_dataset import ImageDataset
 from model.unet import UNet
-import deepdish as dd
 from torch.utils.data import random_split, DataLoader
 
 from utils.checkpoint_manager import CheckpointManager
+from utils.file_manager import FileManager
 from utils.plotter import Plotter
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -40,12 +40,12 @@ class Trainer:
         self.no_of_pixels = images_parameters["no_of_pixels"]
         if test:
             LOG.info("Starting trainer in testing mode")
-            preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "test/preprocessed_images.h5"
+            preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "test/preprocessed_images.pkl"
             self.checkpoint_path = ROOT_PATH + + checkpoint_path_prefix + "test/trained_model.pt"
             datasets_path = ROOT_PATH + + checkpoint_path_prefix + "test/datasets.pt"
         else:
             LOG.info("Starting trainer in standard mode")
-            preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "preprocessed_images.h5"
+            preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "preprocessed_images.pkl"
             self.checkpoint_path = ROOT_PATH + checkpoint_path_prefix + "trained_model.pt"
             datasets_path = ROOT_PATH + checkpoint_path_prefix + "datasets.pt"
 
@@ -163,7 +163,7 @@ class Trainer:
         else:
             LOG.info("Loading preprocessed images from file %s", images_path)
             transform = transforms.ToTensor()
-            preprocessed_images = ImageDataset(dd.io.load(images_path), transform=transform)
+            preprocessed_images = ImageDataset(FileManager.load(images_path), transform=transform)
             LOG.info("%d preprocessed images loaded", len(preprocessed_images))
             n_val = int(len(preprocessed_images) * self.val_proportion)
             loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)

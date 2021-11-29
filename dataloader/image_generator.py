@@ -10,7 +10,8 @@ from configs.logger import Logger
 from dataloader.circle_generator import CircleGenerator
 from dataloader.electric_field_generator import ElectricFieldGenerator
 from dataloader.image import Image
-import deepdish as dd
+
+from utils.file_manager import FileManager
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -71,9 +72,9 @@ class ImageGenerator:
 
         images = np.array(images)
         if test:
-            images_file = ROOT_PATH + "/data/image_generator/test/images.h5"
+            images_file = ROOT_PATH + "/data/image_generator/test/images.pkl"
         else:
-            images_file = ROOT_PATH + "/data/image_generator/images.h5"
+            images_file = ROOT_PATH + "/data/image_generator/images.pkl"
         LOG.info("Saving %d images to file %s", self.no_of_images, images_file)
-        dd.io.save(images_file, images)
+        FileManager.save(images, images_file)
         return images

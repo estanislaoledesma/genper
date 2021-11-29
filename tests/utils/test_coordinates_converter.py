@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-import torch
 from numpy import pi
 from utils.coordinates_converter import CoordinatesConverter
 

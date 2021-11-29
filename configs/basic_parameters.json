@@ -43,7 +43,7 @@
             "reg_num": 3,
             "val_proportion": 0.15,
             "test_proportion": 0.15,
-            "num_epochs": 200,
+            "num_epochs": 50,
             "batch_size": 1,
             "accumulation_steps": 5,
             "num_sub_batches": 1,

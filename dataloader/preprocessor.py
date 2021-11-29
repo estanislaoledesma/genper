@@ -6,11 +6,11 @@ from datetime import datetime
 import numpy as np
 from numpy import pi
 from scipy.special import hankel1
-import deepdish as dd
 
 from configs.constants import Constants
 from configs.logger import Logger
 from dataloader.electric_field_generator import ElectricFieldGenerator
+from utils.file_manager import FileManager
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -44,12 +44,12 @@ class Preprocessor:
         self.vacuum_permittivity = physics_parameters["vacuum_permittivity"]
         if test:
             LOG.info("Starting preprocessor in testing mode")
-            images_path = ROOT_PATH + generated_images_path_prefix + "test/images.h5"
+            images_path = ROOT_PATH + generated_images_path_prefix + "test/images.pkl"
         else:
             LOG.info("Starting preprocessor in standard mode")
-            images_path = ROOT_PATH + generated_images_path_prefix + "images.h5"
+            images_path = ROOT_PATH + generated_images_path_prefix + "images.pkl"
         LOG.info("Loading images from file %s", images_path)
-        self.images = dd.io.load(images_path)
+        self.images = FileManager.load(images_path)
         LOG.info("%d images loaded", np.size(self.images))
 
     def preprocess(self, test, plot_interval, logs_plots_path_prefix, preprocessed_images_path_prefix):
@@ -100,11 +100,11 @@ class Preprocessor:
             image_i += 1
 
         if test:
-            images_file = ROOT_PATH + preprocessed_images_path_prefix + "test/preprocessed_images.h5"
+            images_file = ROOT_PATH + preprocessed_images_path_prefix + "test/preprocessed_images.pkl"
         else:
-            images_file = ROOT_PATH + preprocessed_images_path_prefix + "preprocessed_images.h5"
+            images_file = ROOT_PATH + preprocessed_images_path_prefix + "preprocessed_images.pkl"
         LOG.info("Saving %d preprocessed images to file %s", np.size(self.images), images_file)
-        dd.io.save(images_file, self.images)
+        FileManager.save(self.images, images_file)
         return gs_matrix, gd_matrix, self.images
 
     def generate_gs_matrix(self, x_domain, y_domain):

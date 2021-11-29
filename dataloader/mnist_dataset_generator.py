@@ -12,7 +12,8 @@ from configs.constants import Constants
 from configs.logger import Logger
 from dataloader.electric_field_generator import ElectricFieldGenerator
 from dataloader.image import Image
-import deepdish as dd
+
+from utils.file_manager import FileManager
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -60,13 +61,13 @@ class MNISTDatasetGenerator:
         LOG.info(f'''Going to generate {len(self.train_loader)} of MNIST images for training''')
 
         training_image_path = ROOT_PATH + "/logs/mnist_dataset_generator/mnist_training_images/"
-        training_images_path = ROOT_PATH + "/data/mnist_dataset_generator/mnist_training_images/images.h5"
+        training_images_path = ROOT_PATH + "/data/mnist_dataset_generator/mnist_training_images/images.pkl"
         training_images = self.generate_dataset(self.train_loader, training_image_path, training_images_path)
         LOG.info(f'''Finishing generation of MNIST images for training''')
 
         LOG.info(f'''Going to generate {len(self.test_loader)} of MNIST images for testing''')
         training_image_path = ROOT_PATH + "/logs/mnist_dataset_generator/mnist_testing_images/"
-        training_images_path = ROOT_PATH + "/data/mnist_dataset_generator/mnist_testing_images/images.h5"
+        training_images_path = ROOT_PATH + "/data/mnist_dataset_generator/mnist_testing_images/images.pkl"
         testing_images = self.generate_dataset(self.test_loader, training_image_path, training_images_path)
         LOG.info(f'''Finishing generation of MNIST images for testing''')
 
@@ -90,5 +91,5 @@ class MNISTDatasetGenerator:
             image_i += 1
         images = np.array(images)
         LOG.info("Saving %d MNIST images to file %s", len(loader), images_path)
-        dd.io.save(images_path, images)
+        FileManager.save(images, images_path)
         return images
