@@ -30,24 +30,23 @@ LOG = Logger.get_root_logger(
 
 class Trainer:
 
-    def __init__(self, test, load, mnist, preprocessed_images_path_prefix, checkpoint_path_prefix):
+    def __init__(self, test, mnist, preprocessed_images_path_prefix, checkpoint_path_prefix):
         basic_parameters = Constants.get_basic_parameters()
         unet_parameters = basic_parameters["unet"]
         images_parameters = basic_parameters["images"]
         self.batch_size = unet_parameters["batch_size"]
         self.accumulation_steps = unet_parameters["accumulation_steps"]
         self.num_sub_batches = unet_parameters["num_sub_batches"]
+        self.manual_seed = unet_parameters["manual_seed"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
         if test:
             LOG.info("Starting trainer in testing mode")
             preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "test/preprocessed_images.pkl"
-            self.checkpoint_path = ROOT_PATH + + checkpoint_path_prefix + "test/trained_model.pt"
-            datasets_path = ROOT_PATH + + checkpoint_path_prefix + "test/datasets.pt"
+            self.checkpoint_path = ROOT_PATH + checkpoint_path_prefix + "test/trained_model.pt"
         else:
             LOG.info("Starting trainer in standard mode")
             preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "preprocessed_images.pkl"
             self.checkpoint_path = ROOT_PATH + checkpoint_path_prefix + "trained_model.pt"
-            datasets_path = ROOT_PATH + checkpoint_path_prefix + "datasets.pt"
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.unet = UNet()
@@ -58,7 +57,7 @@ class Trainer:
         self.unet.to(device=self.device)
         self.val_proportion = unet_parameters["val_proportion"]
         self.test_proportion = unet_parameters["test_proportion"]
-        self.load_datasets(load, mnist, preprocessed_images_path, datasets_path)
+        self.load_datasets(mnist, preprocessed_images_path)
         self.num_epochs = unet_parameters["num_epochs"]
         self.learning_rate = unet_parameters["learning_rate"]
         weight_decay = unet_parameters["weight_decay"]
@@ -156,35 +155,27 @@ class Trainer:
         LOG.info(f'''Saving per epoch training/validation errors plot to path {path}''')
         self.plotter.plot_errors(training_errors, validation_errors, path)
 
-    def load_datasets(self, load, mnist, images_path, datasets_path):
-        if load:
-            LOG.info(f'''Loading training and validation testing datasets from {datasets_path}''')
-            self.train_loader, self.val_loader, _ = CheckpointManager.load_datasets(datasets_path, self.device)
+    def load_datasets(self, mnist, images_path):
+        LOG.info("Loading preprocessed images from file %s", images_path)
+        transform = transforms.ToTensor()
+        preprocessed_images = ImageDataset(FileManager.load(images_path), transform=transform)
+        LOG.info("%d preprocessed images loaded", len(preprocessed_images))
+        n_val = int(len(preprocessed_images) * self.val_proportion)
+        if mnist:
+            n_train = len(preprocessed_images) - n_val
+            train_set, val_set = random_split(preprocessed_images, [n_train, n_val],
+                                              generator=torch.Generator().manual_seed(self.manual_seed))
         else:
-            LOG.info("Loading preprocessed images from file %s", images_path)
-            transform = transforms.ToTensor()
-            preprocessed_images = ImageDataset(FileManager.load(images_path), transform=transform)
-            LOG.info("%d preprocessed images loaded", len(preprocessed_images))
-            n_val = int(len(preprocessed_images) * self.val_proportion)
-            loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
-            if mnist:
-                n_train = len(preprocessed_images) - n_val
-                train_set, val_set = random_split(preprocessed_images, [n_train, n_val],
-                                                  generator=torch.Generator().manual_seed(0))
-                test_loader = None
-            else:
-                n_test = int(len(preprocessed_images) * self.test_proportion)
-                n_train = len(preprocessed_images) - n_val - n_test
-                LOG.info("Test set has %d images", n_test)
-                train_set, val_set, test_set = random_split(preprocessed_images, [n_train, n_val, n_test],
-                                                            generator=torch.Generator().manual_seed(0))
-                test_loader = DataLoader(test_set, shuffle=True, drop_last=True, **loader_args)
-            LOG.info("Train set has %d images", n_train)
-            LOG.info("Validation set has %d images", n_val)
-            self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
-            self.val_loader = DataLoader(val_set, shuffle=True, drop_last=True, **loader_args)
-            CheckpointManager.save_datasets(self.train_loader, self.val_loader, test_loader, datasets_path)
-            LOG.info(f'''Saving training, validation and testing datasets to {datasets_path}''')
+            n_test = int(len(preprocessed_images) * self.test_proportion)
+            n_train = len(preprocessed_images) - n_val - n_test
+            train_set, val_set, _ = random_split(preprocessed_images, [n_train, n_val, n_test],
+                                                        generator=torch.Generator().manual_seed(self.manual_seed))
+        LOG.info("Train set has %d images", n_train)
+        LOG.info("Validation set has %d images", n_val)
+
+        loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
+        self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
+        self.val_loader = DataLoader(val_set, shuffle=True, drop_last=True, **loader_args)
 
     def validate(self, test, epoch, validation_logs_plots_path_prefix):
         LOG.info(f'''Validating model for epoch {epoch}''')

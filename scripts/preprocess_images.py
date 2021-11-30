@@ -18,5 +18,5 @@ if __name__ == "__main__":
     logs_plots_path_prefix = "/logs/preprocessor/preprocessed_images/"
     preprocessed_images_path_prefix = "/data/preprocessor/"
     plot_interval = 50
-    preprocessor = Preprocessor(False, generated_images_path_prefix)
-    preprocessor.preprocess(False, plot_interval, logs_plots_path_prefix, preprocessed_images_path_prefix)
+    preprocessor = Preprocessor(test, generated_images_path_prefix)
+    preprocessor.preprocess(test, plot_interval, logs_plots_path_prefix, preprocessed_images_path_prefix)

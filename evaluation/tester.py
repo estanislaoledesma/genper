@@ -5,7 +5,7 @@ from datetime import datetime
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision.transforms import transforms
 
 from configs.constants import Constants
@@ -30,13 +30,16 @@ class Tester:
         basic_parameters = Constants.get_basic_parameters()
         unet_parameters = basic_parameters["unet"]
         self.batch_size = unet_parameters["batch_size"]
+        self.manual_seed = unet_parameters["manual_seed"]
+        self.val_proportion = unet_parameters["val_proportion"]
+        self.test_proportion = unet_parameters["test_proportion"]
         self.checkpoint_path = ROOT_PATH + trained_model_path_prefix + "trained_model.pt"
         if test:
             LOG.info("Starting tester in testing mode")
-            test_images_file = ROOT_PATH + test_images_path_prefix + "test/datasets.pt"
+            test_images_file = ROOT_PATH + test_images_path_prefix + "test/preprocessed_images.pkl"
         else:
             LOG.info("Starting tester in standard mode")
-            test_images_file = ROOT_PATH + test_images_path_prefix + "datasets.pt"
+            test_images_file = ROOT_PATH + test_images_path_prefix + "preprocessed_images.pkl"
         self.unet = UNet()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         LOG.info(f'''Using device: {self.device}''')
@@ -45,16 +48,20 @@ class Tester:
         self.unet, _, _, _, _, _, _ = \
             CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, self.device)
         self.criterion = nn.MSELoss()
+        LOG.info("Loading preprocessed images from file %s", test_images_file)
+        transform = transforms.ToTensor()
+        preprocessed_images = ImageDataset(FileManager.load(test_images_file), transform=transform)
         if mnist:
-            test_images_file = test_images_path_prefix + "preprocessed_images.pkl"
-            LOG.info("Loading MNIST preprocessed images from file %s", test_images_file)
-            transform = transforms.ToTensor()
-            preprocessed_images = ImageDataset(FileManager.load(test_images_file), transform=transform)
-            LOG.info("%d MNIST preprocessed images loaded", len(preprocessed_images))
-            loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
-            self.testing_loader = DataLoader(preprocessed_images, shuffle=True, drop_last=True, **loader_args)
+            test_set = preprocessed_images
+            LOG.info("%d MNIST preprocessed images loaded", len(test_set))
         else:
-            _, _, self.testing_loader = CheckpointManager.load_datasets(test_images_file, self.device)
+            n_val = int(len(preprocessed_images) * self.val_proportion)
+            n_test = int(len(preprocessed_images) * self.test_proportion)
+            n_train = len(preprocessed_images) - n_val - n_test
+            _, _, test_set = random_split(preprocessed_images, [n_train, n_val, n_test],
+                                          generator=torch.Generator().manual_seed(self.manual_seed))
+        loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
+        self.testing_loader = DataLoader(test_set, shuffle=True, drop_last=True, **loader_args)
         LOG.info("%d testing images loaded", len(self.testing_loader))
         self.plotter = Plotter()
 
