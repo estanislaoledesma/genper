@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from dataloader.image_generator import ImageGenerator
+from dataloader.image.image_generator import ImageGenerator
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
@@ -14,7 +14,7 @@ ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 class TestImageGeneratorFunctional(unittest.TestCase):
 
     def setUp(self):
-        image_generator = ImageGenerator(True)
+        image_generator = ImageGenerator(True, False)
         self.images = image_generator.generate_images(True)
 
     def test_equal_images(self):

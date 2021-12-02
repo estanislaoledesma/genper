@@ -3,9 +3,9 @@
 
 import unittest
 
-from dataloader.image_generator import ImageGenerator
+from dataloader.image.image_generator import ImageGenerator
 
 
 class TestImageGenerator(unittest.TestCase):
     def setUp(self):
-        self.image_generator = ImageGenerator()
+        self.image_generator = ImageGenerator(True, False)

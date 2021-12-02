@@ -38,6 +38,7 @@ class Trainer:
         self.accumulation_steps = unet_parameters["accumulation_steps"]
         self.num_sub_batches = unet_parameters["num_sub_batches"]
         self.manual_seed = unet_parameters["manual_seed"]
+        self.num_workers = unet_parameters["num_workers"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
         if test:
             LOG.info("Starting trainer in testing mode")
@@ -173,7 +174,7 @@ class Trainer:
         LOG.info("Train set has %d images", n_train)
         LOG.info("Validation set has %d images", n_val)
 
-        loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
+        loader_args = dict(batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True)
         self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
         self.val_loader = DataLoader(val_set, shuffle=True, drop_last=True, **loader_args)
 

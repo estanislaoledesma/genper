@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import unittest
 
+import numpy as np
+import torch
 from numpy import pi
 from utils.coordinates_converter import CoordinatesConverter
 
@@ -78,3 +80,9 @@ class TestCoordinatesConverter(unittest.TestCase):
         x, y = CoordinatesConverter.pol2cart(rho, phi)
         assert abs(x - 0) < 1e-10
         assert y == -4
+
+    def test(self):
+        a = torch.from_numpy(np.array([[0, 0, 1, 2], [0, 0, 1, 2], [0, 0, 1, 2]]))
+        b = torch.from_numpy(np.array([[0, 1, 0, 1], [0, 1, 0, 1], [0, 1, 0, 1]]))
+        c = torch.where(a == 0, a + b, a)
+        c

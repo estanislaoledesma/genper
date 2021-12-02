@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-from configs.constants import Constants
 from utils.plotter import Plotter
 
 
@@ -14,17 +10,12 @@ class Image:
     def __init__(self):
         self.plotter = Plotter()
 
-    def generate_relative_permittivities(self, x_domain, y_domain, circles):
-        self.circles = circles
+    def generate_relative_permittivities(self, x_domain, y_domain, shapes):
         self.relative_permittivities = np.ones(np.shape(y_domain))
-        for circle in circles:
-            center_x = circle.get_center_x()
-            center_y = circle.get_center_y()
-            radius = circle.get_radius()
-            relative_permittivity = circle.get_relative_permittivity()
-            dist_to_center = np.sqrt(np.power(x_domain - center_x, 2) + np.power(y_domain - center_y, 2))
-            pixel_belongs_to_circle = dist_to_center < radius
-            self.relative_permittivities[pixel_belongs_to_circle] = relative_permittivity
+        for shape in shapes:
+            relative_permittivity = shape.get_relative_permittivity()
+            pixel_belongs_to_shape = shape.check_if_pixels_belong_to_shape(x_domain, y_domain)
+            self.relative_permittivities[pixel_belongs_to_shape] = relative_permittivity
 
     def set_relative_permittivities(self, relative_permittivities):
         self.relative_permittivities = relative_permittivities
@@ -51,3 +42,14 @@ class Image:
     def plot_with_preprocessor_guess(self, image_i, path):
         plot_title = "Image {}".format(image_i)
         self.plotter.plot_comparison(plot_title, path, self.relative_permittivities, self.preprocessor_guess)
+
+    def check_if_pixels_belong_to_rectangle(self, x_domain, y_domain, rectangle):
+        center_x = rectangle.get_center_x()
+        center_y = rectangle.get_center_y()
+        width = rectangle.get_width()
+        height = rectangle.get_height()
+        min_x = center_x - width / 2
+        max_x = center_x + width / 2
+        min_y = center_y - height / 2
+        max_y = center_y + height / 2
+        return (x_domain >= min_x) & (x_domain <= max_x) & (y_domain >= min_y) & (y_domain <= max_y)

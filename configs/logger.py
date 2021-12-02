@@ -2,6 +2,8 @@
 import os
 import logging
 
+from configs.tqdm_logging_handler import TqdmLoggingHandler
+
 
 class Logger:
 
@@ -11,6 +13,8 @@ class Logger:
         logger = logging.getLogger(logger_name)
         debug = os.environ.get('ENV', 'development') == 'development'
         logger.setLevel(logging.DEBUG if debug else logging.INFO)
+        logging.getLogger('matplotlib').setLevel(logging.WARNING)
+        logger.addHandler(TqdmLoggingHandler())
 
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

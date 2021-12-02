@@ -9,10 +9,10 @@ from scipy.special import hankel1
 
 from configs.constants import Constants
 from configs.logger import Logger
-from dataloader.electric_field_generator import ElectricFieldGenerator
+from dataloader.electric_field.electric_field_generator import ElectricFieldGenerator
 from utils.file_manager import FileManager
 
-ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
 LOG = Logger.get_root_logger(
     os.environ.get('ROOT_LOGGER', 'root'),

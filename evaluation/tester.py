@@ -31,6 +31,7 @@ class Tester:
         unet_parameters = basic_parameters["unet"]
         self.batch_size = unet_parameters["batch_size"]
         self.manual_seed = unet_parameters["manual_seed"]
+        self.num_workers = unet_parameters["num_workers"]
         self.val_proportion = unet_parameters["val_proportion"]
         self.test_proportion = unet_parameters["test_proportion"]
         self.checkpoint_path = ROOT_PATH + trained_model_path_prefix + "trained_model.pt"
@@ -60,7 +61,7 @@ class Tester:
             n_train = len(preprocessed_images) - n_val - n_test
             _, _, test_set = random_split(preprocessed_images, [n_train, n_val, n_test],
                                           generator=torch.Generator().manual_seed(self.manual_seed))
-        loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
+        loader_args = dict(batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True)
         self.testing_loader = DataLoader(test_set, shuffle=True, drop_last=True, **loader_args)
         LOG.info("%d testing images loaded", len(self.testing_loader))
         self.plotter = Plotter()

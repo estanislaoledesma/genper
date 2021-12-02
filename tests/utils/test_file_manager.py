@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from dataloader.image import Image
+from dataloader.image.image import Image
 from utils.file_manager import FileManager
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))

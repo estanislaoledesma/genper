@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from dataloader.preprocessor import Preprocessor
+from dataloader.preprocessor.preprocessor import Preprocessor
 
 if __name__ == "__main__":
     generated_training_images_path_prefix = "/data/mnist_dataset_generator/mnist_training_images/"
