@@ -68,13 +68,28 @@ class Plotter:
             axis.set_ylabel("y (m)")
         axis.set_title(title)
 
-    def plot_errors(self, training_errors, validation_errors, path):
+    def plot_errors(self, plot_title, errors_1, errors_1_label, errors_2, errors_2_label, x_label, path):
         figure= plt.figure(figsize=(15, 15))
-        plt.plot(*zip(*sorted(training_errors.items())), label="Training error")
-        plt.plot(*zip(*sorted(validation_errors.items())), label="Validation error")
-        plt.title("Model Loss")
-        plt.xlabel("epoch")
+        plt.plot(*zip(*sorted(errors_1.items())), label=errors_1_label)
+        plt.plot(*zip(*sorted(errors_2.items())), label=errors_2_label)
+        plt.title(plot_title)
+        plt.xlabel(x_label)
         plt.ylabel("loss")
         plt.legend()
+        plt.savefig(path)
+        plt.close("all")
+
+    def plot_errors_as_bar_plot(self, plot_title, errors_1, errors_1_label, errors_2, errors_2_label, x_label, path):
+        figure= plt.figure(figsize=(15, 15))
+        axis = figure.subplots()
+        width = 0.3
+        axis.bar(np.array(list(errors_1.keys())) - width/2, np.array(list(errors_1.values())),
+                 width, label=errors_1_label)
+        axis.bar(np.array(list(errors_2.keys())) + width/2, np.array(list(errors_2.values())),
+                 width, label=errors_2_label)
+        axis.set_title(plot_title)
+        axis.set_xlabel(x_label)
+        axis.set_ylabel("loss")
+        axis.legend()
         plt.savefig(path)
         plt.close("all")

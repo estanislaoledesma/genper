@@ -6,7 +6,7 @@ import numpy as np
 from scipy.special import hankel1
 
 from configs.constants import Constants
-from dataloader.electric_field import ElectricField
+from dataloader.electric_field.electric_field import ElectricField
 from utils.coordinates_converter import CoordinatesConverter
 
 

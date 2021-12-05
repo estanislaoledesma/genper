@@ -15,5 +15,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
 
-    tester = Tester(test)
-    tester.test(test)
+    trained_model_path_prefix = "/data/trainer/"
+    test_images_path_prefix = "/data/preprocessor/"
+    testing_logs_plots_path_prefix = "/logs/tester/testing_images/"
+    plot_interval = 5
+    tester = Tester(test, False, trained_model_path_prefix, test_images_path_prefix)
+    tester.test(test, plot_interval, testing_logs_plots_path_prefix)

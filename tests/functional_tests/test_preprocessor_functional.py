@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from dataloader.preprocessor import Preprocessor
+from dataloader.preprocessor.preprocessor import Preprocessor
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
@@ -12,8 +12,14 @@ ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 class TestPreprocessorFunctional(unittest.TestCase):
 
     def setUp(self):
-        preprocessor = Preprocessor(True)
-        self.gs_matrix, self.gd_matrix, self.images = preprocessor.preprocess(True)
+        generated_images_path_prefix = "/data/image_generator/"
+        logs_plots_path_prefix = "/logs/preprocessor/preprocessed_images/"
+        preprocessed_images_path_prefix = "/data/preprocessor/"
+        plot_interval = 50
+        preprocessor = Preprocessor(True, generated_images_path_prefix)
+        self.gs_matrix, self.gd_matrix, self.images = preprocessor.preprocess(True, plot_interval,
+                                                                              logs_plots_path_prefix,
+                                                                              preprocessed_images_path_prefix)
 
     def test_equal_preprocessor_images(self):
         i = 1

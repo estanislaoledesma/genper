@@ -21,4 +21,4 @@ branches:
   only:
     - master
     - develop
-    - red-neuronal-genera-imagen-ok
+    - preprocesador-set-de-datos

@@ -35,15 +35,15 @@ Contiene todas las clases que conforman la red neuronal en sí.
 Contiene los scripts para ejecutar cada parte del código por separado.
 
 #### generate_images.py
-Mediante este script se llama al generador de imágenes, el cual generará un archivo images.h5 dentro de data/image_generator,  
+Mediante este script se llama al generador de imágenes, el cual generará un archivo images.pkl dentro de data/image_generator,  
 el cual será utilizado por el preprocesador. También generará los correspondientes logs dentro de logs/image_generator junto 
 con algunos archivos png de muestra de las imágenes generadas. Se le puede pasar la opción *-t* o *--test* para ejecutar 
 en modo testing.
 
 #### preprocess_images.py
-Mediante este script se llama al preprocesador de imágenes, el cual cargará el archivo images.h5 generado por el generador 
+Mediante este script se llama al preprocesador de imágenes, el cual cargará el archivo images.pkl generado por el generador 
 de imágenes dentro de data/image_generator. A estas imágenes las procesará y generará su correspondiente archivo 
-preprocessed_images.h5 dentro de data/preprocessor. También generará los correspondientes logs dentro de logs/preprocessor. 
+preprocessed_images.pkl dentro de data/preprocessor. También generará los correspondientes logs dentro de logs/preprocessor. 
 Se le puede pasar la opción *-t* o *--test* para ejecutar en modo testing.
 
 #### train_model.py
