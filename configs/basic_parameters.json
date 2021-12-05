@@ -25,6 +25,8 @@
             "no_of_pixels": 64,
             "min_radius": 0.15,
             "max_radius": 0.4,
+            "min_side": 0.15,
+            "max_side": 0.4,
             "no_of_images": 500,
             "test_percentage": 0.05
         },
@@ -32,7 +34,6 @@
         {
             "in_channels": 1,
             "out_channels": 1,
-            "use_gpu": false,
             "scale": 1,
             "weight_scale_init_method": "gaussian",
             "batch_normalization": true,
@@ -41,14 +42,17 @@
             "batch_on": true,
             "relu_on": true,
             "reg_num": 3,
-            "val_proportion": 0.15,
-            "test_proportion": 0.15,
-            "num_epochs": 200,
+            "val_proportion": 0.05,
+            "test_proportion": 0.05,
+            "num_epochs": 50,
             "batch_size": 1,
+            "mnist_batch_size": 50,
+            "num_workers": 4,
             "accumulation_steps": 5,
             "num_sub_batches": 1,
             "learning_rate": 1e-2,
             "weight_decay": 1e-8,
-            "momentum": 0.9
+            "momentum": 0.9,
+            "manual_seed": 253
         }
 }

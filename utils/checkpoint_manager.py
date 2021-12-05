@@ -39,20 +39,3 @@ class CheckpointManager:
         checkpoint['validation_errors'] = validation_errors
         checkpoint['time_elapsed'] = time_elapsed
         torch.save(checkpoint, checkpoint_path)
-
-    @staticmethod
-    def save_datasets(train_loader, val_loader, test_loader, save_path):
-        torch.save({
-            'train_loader': train_loader,
-            'val_loader': val_loader,
-            'test_loader': test_loader,
-        }, save_path)
-
-    @staticmethod
-    def load_datasets(load_path, device):
-        datasets = torch.load(load_path, map_location=device)
-        train_loader = datasets['train_loader']
-        val_loader = datasets['val_loader']
-        test_loader = datasets['test_loader']
-
-        return train_loader, val_loader, test_loader

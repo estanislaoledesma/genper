@@ -138,24 +138,51 @@ logs/image_generator/images/test/*.png
 logs/preprocessor/*.log
 logs/preprocessor/preprocessed_images/*.png
 logs/preprocessor/preprocessed_images/test/*.png
+logs/preprocessor/mnist_preprocessed_images/mnist_training_images/*.png
+logs/preprocessor/mnist_preprocessed_images/mnist_testing_images/*.png
+logs/preprocessor/matlab_preprocessed_images/*.png
 logs/trainer/*.log
 logs/trainer/*.png
 logs/trainer/test/*.png
+logs/trainer/mnist/*.png
+logs/trainer/matlab/*.png
 logs/trainer/training_images/*.png
 logs/trainer/training_images/test/*.png
+logs/trainer/mnist/training_images/*.png
+logs/trainer/matlab/training_images/*.png
 logs/trainer/validation_images/*.png
 logs/trainer/validation_images/test/*.png
+logs/trainer/mnist/validation_images/*.png
+logs/trainer/matlab/validation_images/*.png
 logs/tester/*.log
 logs/tester/testing_images/*.png
 logs/tester/testing_images/test/*.png
+logs/tester/mnist/testing_images/*.png
+logs/tester/matlab/testing_images/*.png
+logs/mnist_dataset_generator/*.log
+logs/mnist_dataset_generator/mnist_training_images/*.png
+logs/mnist_dataset_generator/mnist_testing_images/*.png
+logs/matlab_image_generator/*.log
+logs/matlab_image_generator/images/*.png
+logs/matlab_validator/*.log
+logs/matlab_validator/*.png
 
 # Data
-data/image_generator/*.h5
-data/image_generator/test/*.h5
-data/preprocessor/*.h5
-data/preprocessor/test/*.h5
+data/image_generator/*.pkl
+data/image_generator/test/*.pkl
+data/preprocessor/*.pkl
+data/preprocessor/test/*.pkl
+data/preprocessor/mnist_training_images/*.pkl
+data/preprocessor/mnist_testing_images/*.pkl
+data/preprocessor/matlab_images/*.pkl
 data/trainer/*.pt
 data/trainer/test/*.pt
+data/trainer/mnist/*.pt
+data/trainer/matlab/*.pt
+data/mnist_dataset_generator/mnist_training_images/*.pkl
+data/mnist_dataset_generator/mnist_testing_images/*.pkl
+data/mnist_dataset_generator/MNIST/
+data/matlab_image_generator/*.pkl
 
 # Model checkpoints
 executor/checkpoints/*.pt

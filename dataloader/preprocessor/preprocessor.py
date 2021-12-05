@@ -6,13 +6,13 @@ from datetime import datetime
 import numpy as np
 from numpy import pi
 from scipy.special import hankel1
-import deepdish as dd
 
 from configs.constants import Constants
 from configs.logger import Logger
-from dataloader.electric_field_generator import ElectricFieldGenerator
+from dataloader.electric_field.electric_field_generator import ElectricFieldGenerator
+from utils.file_manager import FileManager
 
-ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
 LOG = Logger.get_root_logger(
     os.environ.get('ROOT_LOGGER', 'root'),
@@ -22,7 +22,7 @@ LOG = Logger.get_root_logger(
 
 class Preprocessor:
 
-    def __init__(self, test):
+    def __init__(self, test, generated_images_path_prefix):
         basic_parameters = Constants.get_basic_parameters()
         physics_parameters = basic_parameters["physics"]
         images_parameters = basic_parameters["images"]
@@ -44,15 +44,15 @@ class Preprocessor:
         self.vacuum_permittivity = physics_parameters["vacuum_permittivity"]
         if test:
             LOG.info("Starting preprocessor in testing mode")
-            images_path = ROOT_PATH + "/data/image_generator/test/images.h5"
+            images_path = ROOT_PATH + generated_images_path_prefix + "test/images.pkl"
         else:
             LOG.info("Starting preprocessor in standard mode")
-            images_path = ROOT_PATH + "/data/image_generator/images.h5"
+            images_path = ROOT_PATH + generated_images_path_prefix + "images.pkl"
         LOG.info("Loading images from file %s", images_path)
-        self.images = dd.io.load(images_path)
+        self.images = FileManager.load(images_path)
         LOG.info("%d images loaded", np.size(self.images))
 
-    def preprocess(self, test):
+    def preprocess(self, test, plot_interval, logs_plots_path_prefix, preprocessed_images_path_prefix):
         image_domain = np.linspace(-self.max_diameter, self.max_diameter, self.no_of_pixels)
         x_domain, y_domain = np.meshgrid(image_domain, -image_domain)
         incident_electric_field = self.electric_field_generator.generate_incident_electric_field(x_domain, y_domain)
@@ -89,22 +89,22 @@ class Preprocessor:
                       (-self.angular_frequency * self.vacuum_permittivity * self.pixel_length ** 2) + 1
             permittivities = np.reshape(epsilon, (self.no_of_pixels, self.no_of_pixels), order="F")
             image.set_preprocessor_guess(permittivities)
-            if image_i % 50 == 0 and not test:
-                image_path = ROOT_PATH + "/logs/preprocessor/preprocessed_images/preprocessed_image_{}.png".format(image_i)
+            if image_i % plot_interval == 0 and not test:
+                image_path = ROOT_PATH + logs_plots_path_prefix + "preprocessed_image_{}.png".format(image_i)
                 LOG.info(f'''Saving preprocessed image plot to path {image_path}''')
                 image.plot_with_preprocessor_guess(image_i, image_path)
             if test:
-                image_path = ROOT_PATH + "/logs/preprocessor/preprocessed_images/test/preprocessed_image_{}.png".format(image_i)
+                image_path = ROOT_PATH + logs_plots_path_prefix + "test/preprocessed_image_{}.png".format(image_i)
                 LOG.info(f'''Saving preprocessed image plot to path {image_path}''')
                 image.plot_with_preprocessor_guess(image_i, image_path)
             image_i += 1
 
         if test:
-            images_file = ROOT_PATH + "/data/preprocessor/test/preprocessed_images.h5"
+            images_file = ROOT_PATH + preprocessed_images_path_prefix + "test/preprocessed_images.pkl"
         else:
-            images_file = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
+            images_file = ROOT_PATH + preprocessed_images_path_prefix + "preprocessed_images.pkl"
         LOG.info("Saving %d preprocessed images to file %s", np.size(self.images), images_file)
-        dd.io.save(images_file, self.images)
+        FileManager.save(self.images, images_file)
         return gs_matrix, gd_matrix, self.images
 
     def generate_gs_matrix(self, x_domain, y_domain):

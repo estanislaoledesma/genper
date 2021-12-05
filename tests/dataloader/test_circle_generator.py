@@ -3,9 +3,7 @@
 
 import unittest
 
-import numpy as np
-
-from dataloader.circle_generator import CircleGenerator
+from dataloader.shape_generators.circle_generator import CircleGenerator
 
 
 class TestCircleGenerator(unittest.TestCase):

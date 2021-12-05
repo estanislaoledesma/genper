@@ -14,10 +14,10 @@ from configs.constants import Constants
 from configs.logger import Logger
 from dataloader.image_dataset import ImageDataset
 from model.unet import UNet
-import deepdish as dd
 from torch.utils.data import random_split, DataLoader
 
 from utils.checkpoint_manager import CheckpointManager
+from utils.file_manager import FileManager
 from utils.plotter import Plotter
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -30,24 +30,27 @@ LOG = Logger.get_root_logger(
 
 class Trainer:
 
-    def __init__(self, test, load):
+    def __init__(self, test, mnist, preprocessed_images_path_prefix, checkpoint_path_prefix):
         basic_parameters = Constants.get_basic_parameters()
         unet_parameters = basic_parameters["unet"]
         images_parameters = basic_parameters["images"]
-        self.batch_size = unet_parameters["batch_size"]
+        if mnist:
+            self.batch_size = unet_parameters["mnist_batch_size"]
+        else:
+            self.batch_size = unet_parameters["batch_size"]
         self.accumulation_steps = unet_parameters["accumulation_steps"]
         self.num_sub_batches = unet_parameters["num_sub_batches"]
+        self.manual_seed = unet_parameters["manual_seed"]
+        self.num_workers = unet_parameters["num_workers"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
         if test:
             LOG.info("Starting trainer in testing mode")
-            preprocessed_images_path = ROOT_PATH + "/data/preprocessor/test/preprocessed_images.h5"
-            self.checkpoint_path = ROOT_PATH + "/data/trainer/test/trained_model.pt"
-            datasets_path = ROOT_PATH + "/data/trainer/test/datasets.pt"
+            preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "test/preprocessed_images.pkl"
+            self.checkpoint_path = ROOT_PATH + checkpoint_path_prefix + "test/trained_model.pt"
         else:
             LOG.info("Starting trainer in standard mode")
-            preprocessed_images_path = ROOT_PATH + "/data/preprocessor/preprocessed_images.h5"
-            self.checkpoint_path = ROOT_PATH + "/data/trainer/trained_model.pt"
-            datasets_path = ROOT_PATH + "/data/trainer/datasets.pt"
+            preprocessed_images_path = ROOT_PATH + preprocessed_images_path_prefix + "preprocessed_images.pkl"
+            self.checkpoint_path = ROOT_PATH + checkpoint_path_prefix + "trained_model.pt"
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.unet = UNet()
@@ -58,7 +61,7 @@ class Trainer:
         self.unet.to(device=self.device)
         self.val_proportion = unet_parameters["val_proportion"]
         self.test_proportion = unet_parameters["test_proportion"]
-        self.load_datasets(load, preprocessed_images_path, datasets_path)
+        self.load_datasets(mnist, preprocessed_images_path)
         self.num_epochs = unet_parameters["num_epochs"]
         self.learning_rate = unet_parameters["learning_rate"]
         weight_decay = unet_parameters["weight_decay"]
@@ -66,7 +69,8 @@ class Trainer:
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
-    def train(self, test, load):
+    def train(self, test, load, plot_interval, training_logs_plots_path_prefix, validation_logs_plots_path_prefix,
+              error_logs_plots_path_prefix):
         init_epoch = 0
         min_valid_loss = np.inf
         training_errors = OrderedDict()
@@ -76,7 +80,8 @@ class Trainer:
         if load:
             LOG.info(f'''Going to load model from {self.checkpoint_path}''')
             self.unet, self.optimizer, init_epoch, min_valid_loss, training_errors, validation_errors, time_elapsed = \
-                CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, self.device, optimizer=self.optimizer)
+                CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, self.device,
+                                                  optimizer=self.optimizer)
 
         LOG.info(f'''Starting training:
                             Total epochs:    {self.num_epochs}
@@ -104,25 +109,26 @@ class Trainer:
                         self.optimizer.step()
                         self.optimizer.zero_grad(set_to_none=True)
 
-                    pbar.update(len(images))
+                    pbar.update()
                     pbar.set_postfix(**{'loss (batch)': loss.item()})
 
-                    if ix % 50 == 0 and not test:
+                    if ix % plot_interval == 0 and not test:
                         plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
-                        path = ROOT_PATH + "/logs/trainer/training_images/trained_image_{}_{}.png".format(epoch, ix)
+                        path = ROOT_PATH + training_logs_plots_path_prefix + "trained_image_{}_{}.png".format(epoch, ix)
                         LOG.info(f'''Saving trained image plot to path {path}''')
                         self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
-                                                     images, prediction, loss.item())
+                                                                  images, prediction, loss.item())
                     if test:
                         plot_title = "Training - Epoch {} - Batch {}".format(epoch, ix)
-                        path = ROOT_PATH + "/logs/trainer/training_images/test/trained_image_{}_{}.png".format(epoch, ix)
+                        path = ROOT_PATH + training_logs_plots_path_prefix + "test/trained_image_{}_{}.png".format(
+                            epoch, ix)
                         LOG.info(f'''Saving trained image plot to path {path}''')
                         self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
-                                                     images, prediction, loss.item())
+                                                                  images, prediction, loss.item())
 
             training_loss = training_loss / len(self.train_loader)
-            training_errors [epoch] = training_loss
-            validation_loss = self.validate(test, epoch)
+            training_errors[epoch] = training_loss
+            validation_loss = self.validate(test, epoch, validation_logs_plots_path_prefix)
             validation_errors[epoch] = validation_loss
 
             LOG.info(f'''Statistics of epoch {epoch}/{self.num_epochs}:
@@ -133,48 +139,50 @@ class Trainer:
             start_epoch_time = datetime.now()
             if min_valid_loss > validation_loss:
                 min_valid_loss = validation_loss
-                LOG.info(f'''Saving progress for epoch {epoch} with loss {validation_loss:.2E} to path {self.checkpoint_path}''')
+                LOG.info(
+                    f'''Saving progress for epoch {epoch} with loss {validation_loss:.2E} to path {self.checkpoint_path}''')
                 CheckpointManager.save_checkpoint(self.unet, self.optimizer, self.checkpoint_path, epoch,
                                                   min_valid_loss, training_errors, validation_errors, time_elapsed)
             else:
                 LOG.info(f'''Updating checkpoint with new epoch value ({epoch}) in path {self.checkpoint_path}''')
-                CheckpointManager.update_epoch(self.checkpoint_path, epoch, training_errors, validation_errors, time_elapsed)
+                CheckpointManager.update_epoch(self.checkpoint_path, epoch, training_errors, validation_errors,
+                                               time_elapsed)
         LOG.info(f'''Finishing training of the network''')
         LOG.info(f'''Total duration of the training was {time_elapsed}''')
 
         if test:
-            path = ROOT_PATH + "/logs/trainer/test_errors_{:%Y-%m-%d_%H:%M:%S}.png".format(datetime.now())
+            path = ROOT_PATH + error_logs_plots_path_prefix + "test_errors_{:%Y-%m-%d_%H:%M:%S}.png".format(
+                datetime.now())
         else:
-            path = ROOT_PATH + "/logs/trainer/errors_{:%Y-%m-%d_%H:%M:%S}.png".format(datetime.now())
+            path = ROOT_PATH + error_logs_plots_path_prefix + "errors_{:%Y-%m-%d_%H:%M:%S}.png".format(datetime.now())
 
         LOG.info(f'''Saving per epoch training/validation errors plot to path {path}''')
-        self.plotter.plot_errors(training_errors, validation_errors, path)
+        self.plotter.plot_errors("Model Loss", training_errors, "Training error", validation_errors,
+                                 "Validation error", "epoch", path)
 
-    def load_datasets(self, load, images_path, datasets_path):
-        if load:
-            LOG.info(f'''Loading training and validation testing datasets from {datasets_path}''')
-            self.train_loader, self.val_loader, _ = CheckpointManager.load_datasets(datasets_path, self.device)
+    def load_datasets(self, mnist, images_path):
+        LOG.info("Loading preprocessed images from file %s", images_path)
+        transform = transforms.ToTensor()
+        preprocessed_images = ImageDataset(FileManager.load(images_path), transform=transform)
+        LOG.info("%d preprocessed images loaded", len(preprocessed_images))
+        n_val = int(len(preprocessed_images) * self.val_proportion)
+        if mnist:
+            n_train = len(preprocessed_images) - n_val
+            train_set, val_set = random_split(preprocessed_images, [n_train, n_val],
+                                              generator=torch.Generator().manual_seed(self.manual_seed))
         else:
-            LOG.info("Loading preprocessed images from file %s", images_path)
-            transform = transforms.ToTensor()
-            preprocessed_images = ImageDataset(dd.io.load(images_path), transform=transform)
-            LOG.info("%d preprocessed images loaded", len(preprocessed_images))
-            n_val = int(len(preprocessed_images) * self.val_proportion)
             n_test = int(len(preprocessed_images) * self.test_proportion)
             n_train = len(preprocessed_images) - n_val - n_test
-            LOG.info("Train set has %d images", n_train)
-            LOG.info("Validation set has %d images", n_val)
-            LOG.info("Test set has %d images", n_test)
-            train_set, val_set, test_set = random_split(preprocessed_images, [n_train, n_val, n_test],
-                                                        generator=torch.Generator().manual_seed(0))
-            loader_args = dict(batch_size=self.batch_size, num_workers=4, pin_memory=True)
-            self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
-            self.val_loader = DataLoader(val_set, shuffle=True, drop_last=True, **loader_args)
-            test_loader = DataLoader(test_set, shuffle=True, drop_last=True, **loader_args)
-            CheckpointManager.save_datasets(self.train_loader, self.val_loader, test_loader, datasets_path)
-            LOG.info(f'''Saving training, validation and testing datasets to {datasets_path}''')
+            train_set, val_set, _ = random_split(preprocessed_images, [n_train, n_val, n_test],
+                                                        generator=torch.Generator().manual_seed(self.manual_seed))
+        LOG.info("Train set has %d images", n_train)
+        LOG.info("Validation set has %d images", n_val)
 
-    def validate(self, test, epoch):
+        loader_args = dict(batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True)
+        self.train_loader = DataLoader(train_set, shuffle=True, **loader_args)
+        self.val_loader = DataLoader(val_set, shuffle=True, drop_last=True, **loader_args)
+
+    def validate(self, test, epoch, validation_logs_plots_path_prefix):
         LOG.info(f'''Validating model for epoch {epoch}''')
         validation_loss = 0.0
         self.unet.eval()
@@ -188,14 +196,16 @@ class Trainer:
 
                 if ix % 5 == 0 and not test:
                     plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
-                    path = ROOT_PATH + "/logs/trainer/validation_images/validation_image_{}_{}.png".format(epoch, ix)
+                    path = ROOT_PATH + validation_logs_plots_path_prefix + "validation_image_{}_{}.png".format(epoch,
+                                                                                                               ix)
                     LOG.info(f'''Saving validation image plot to path {path}''')
                     self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
                                                               images, prediction, loss.item())
                 if test:
                     plot_title = "Validation - Epoch {} - Batch {}".format(epoch, ix)
-                    path = ROOT_PATH + "/logs/trainer/validation_images/test/validation_image_{}_{}.png".format(epoch, ix)
+                    path = ROOT_PATH + validation_logs_plots_path_prefix + "test/validation_image_{}_{}.png".format(
+                        epoch, ix)
                     LOG.info(f'''Saving validation image plot to path {path}''')
                     self.plotter.plot_comparison_with_tensors(plot_title, path, labels, images,
-                                                 prediction, loss.item())
+                                                              prediction, loss.item())
         return validation_loss / len(self.val_loader)
