@@ -174,12 +174,14 @@ data/preprocessor/*.pkl
 data/preprocessor/test/*.pkl
 data/preprocessor/mnist_training_images/*.pkl
 data/preprocessor/mnist_testing_images/*.pkl
+data/preprocessor/matlab_images/*.pkl
 data/trainer/*.pt
 data/trainer/test/*.pt
 data/trainer/mnist/*.pt
 data/mnist_dataset_generator/mnist_training_images/*.pkl
 data/mnist_dataset_generator/mnist_testing_images/*.pkl
 data/mnist_dataset_generator/MNIST/
+data/matlab_image_generator/*.pkl
 
 # Model checkpoints
 executor/checkpoints/*.pt
