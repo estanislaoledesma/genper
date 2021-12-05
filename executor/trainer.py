@@ -34,7 +34,10 @@ class Trainer:
         basic_parameters = Constants.get_basic_parameters()
         unet_parameters = basic_parameters["unet"]
         images_parameters = basic_parameters["images"]
-        self.batch_size = unet_parameters["batch_size"]
+        if mnist:
+            self.batch_size = unet_parameters["mnist_batch_size"]
+        else:
+            self.batch_size = unet_parameters["batch_size"]
         self.accumulation_steps = unet_parameters["accumulation_steps"]
         self.num_sub_batches = unet_parameters["num_sub_batches"]
         self.manual_seed = unet_parameters["manual_seed"]
@@ -106,7 +109,7 @@ class Trainer:
                         self.optimizer.step()
                         self.optimizer.zero_grad(set_to_none=True)
 
-                    pbar.update(len(images))
+                    pbar.update()
                     pbar.set_postfix(**{'loss (batch)': loss.item()})
 
                     if ix % plot_interval == 0 and not test:
@@ -154,7 +157,8 @@ class Trainer:
             path = ROOT_PATH + error_logs_plots_path_prefix + "errors_{:%Y-%m-%d_%H:%M:%S}.png".format(datetime.now())
 
         LOG.info(f'''Saving per epoch training/validation errors plot to path {path}''')
-        self.plotter.plot_errors(training_errors, validation_errors, path)
+        self.plotter.plot_errors("Model Loss", training_errors, "Training error", validation_errors,
+                                 "Validation error", "epoch", path)
 
     def load_datasets(self, mnist, images_path):
         LOG.info("Loading preprocessed images from file %s", images_path)

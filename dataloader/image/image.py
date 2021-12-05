@@ -11,6 +11,7 @@ class Image:
         self.plotter = Plotter()
 
     def generate_relative_permittivities(self, x_domain, y_domain, shapes):
+        self.shapes = shapes
         self.relative_permittivities = np.ones(np.shape(y_domain))
         for shape in shapes:
             relative_permittivity = shape.get_relative_permittivity()

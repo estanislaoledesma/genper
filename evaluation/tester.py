@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+from collections import OrderedDict
 from datetime import datetime
 
+import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, random_split
@@ -46,7 +48,7 @@ class Tester:
         LOG.info(f'''Using device: {self.device}''')
         self.unet.to(device=self.device)
         LOG.info(f'''Going to load model from {self.checkpoint_path}''')
-        self.unet, _, _, _, _, _, _ = \
+        self.unet, _, _, _, self.training_errors, self.validation_errors, _ = \
             CheckpointManager.load_checkpoint(self.unet, self.checkpoint_path, self.device)
         self.criterion = nn.MSELoss()
         LOG.info("Loading preprocessed images from file %s", test_images_file)
@@ -68,7 +70,7 @@ class Tester:
 
     def test(self, test, plot_interval, testing_logs_plots_path_prefix):
         LOG.info(f'''Going to test model for {len(self.testing_loader)} images''')
-        testing_loss = 0.0
+        testing_loss = OrderedDict()
         with torch.no_grad():
             self.unet.eval()
             for ix, (images, labels) in enumerate(self.testing_loader):
@@ -76,7 +78,7 @@ class Tester:
                 labels = labels.to(device=self.device, dtype=torch.float32)
                 prediction = self.unet(images)
                 loss = self.criterion(prediction, labels)
-                testing_loss += loss.item()
+                testing_loss[ix + 1] = loss.item()
 
                 if ix % plot_interval == 0 and not test:
                     plot_title = "Testing - Batch {}".format(ix)
@@ -91,4 +93,6 @@ class Tester:
                     self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
                                                  images, prediction,  loss.item())
 
-        LOG.info(f'''Tested model for {len(self.testing_loader)} images with a total loss of {testing_loss:.2E}''')
+        testing_loss_list = np.array(list(testing_loss.values()))
+        LOG.info(f'''Tested model for {len(self.testing_loader)} images with a total loss of {testing_loss_list.sum():.2E} and average loss of {testing_loss_list.mean():.2E}''')
+        return self.training_errors, self.validation_errors, testing_loss

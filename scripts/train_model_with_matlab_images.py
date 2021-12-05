@@ -20,7 +20,7 @@ if __name__ == "__main__":
     training_logs_plots_path_prefix = "/logs/trainer/matlab/training_images/"
     validation_logs_plots_path_prefix = "/logs/trainer/matlab/validation_images/"
     error_logs_plots_path_prefix = "/logs/trainer/matlab/"
-    plot_interval = 500
+    plot_interval = 50
     trainer = Trainer(False, False, preprocessed_images_path_prefix, checkpoint_path_prefix)
     trainer.train(False, load, plot_interval, training_logs_plots_path_prefix, validation_logs_plots_path_prefix,
                   error_logs_plots_path_prefix)
