@@ -66,6 +66,7 @@ class Trainer:
         self.learning_rate = unet_parameters["learning_rate"]
         weight_decay = unet_parameters["weight_decay"]
         self.optimizer = optim.AdamW(self.unet.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
+        #self.optimizer = optim.SGD(self.unet.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
@@ -87,8 +88,8 @@ class Trainer:
                             Total epochs:    {self.num_epochs}
                             Batch size:      {self.batch_size}
                             Learning rate:   {self.learning_rate}
-                            Training size:   {len(self.train_loader)}
-                            Validation size: {len(self.val_loader)}
+                            Training size:   {len(self.train_loader) * self.batch_size}
+                            Validation size: {len(self.val_loader) * self.batch_size}
                             Time elapsed:    {time_elapsed}
                         ''')
         for epoch in range(init_epoch + 1, self.num_epochs + 1):

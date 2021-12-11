@@ -75,6 +75,7 @@ class Plotter:
         plt.title(plot_title)
         plt.xlabel(x_label)
         plt.ylabel("loss")
+        plt.yscale("log")
         plt.legend()
         plt.savefig(path)
         plt.close("all")
