@@ -65,11 +65,11 @@ class Tester:
                                           generator=torch.Generator().manual_seed(self.manual_seed))
         loader_args = dict(batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True)
         self.testing_loader = DataLoader(test_set, shuffle=True, drop_last=True, **loader_args)
-        LOG.info("%d testing images loaded", len(self.testing_loader) * self.batch_size)
+        LOG.info("%d testing images loaded", len(self.testing_loader.dataset))
         self.plotter = Plotter()
 
     def test(self, test, plot_interval, testing_logs_plots_path_prefix):
-        LOG.info(f'''Going to test model for {len(self.testing_loader) * self.batch_size} images''')
+        LOG.info(f'''Going to test model for {len(self.testing_loader.dataset)} images''')
         testing_loss = OrderedDict()
         with torch.no_grad():
             self.unet.eval()
@@ -94,5 +94,5 @@ class Tester:
                                                  images, prediction,  loss.item())
 
         testing_loss_list = np.array(list(testing_loss.values()))
-        LOG.info(f'''Tested model for {len(self.testing_loader) * self.batch_size} images with a total loss of {testing_loss_list.sum():.2E}, average loss of {testing_loss_list.mean():.2E} and standard deviation {testing_loss_list.std():.2E}''')
+        LOG.info(f'''Tested model for {len(self.testing_loader.dataset)} images with a total loss of {testing_loss_list.sum():.2E}, average loss of {testing_loss_list.mean():.2E} and standard deviation {testing_loss_list.std():.2E}''')
         return self.training_errors, self.validation_errors, testing_loss

@@ -88,8 +88,8 @@ class Trainer:
                             Total epochs:    {self.num_epochs}
                             Batch size:      {self.batch_size}
                             Learning rate:   {self.learning_rate}
-                            Training size:   {len(self.train_loader) * self.batch_size}
-                            Validation size: {len(self.val_loader) * self.batch_size}
+                            Training size:   {len(self.train_loader.dataset)}
+                            Validation size: {len(self.val_loader.dataset)}
                             Time elapsed:    {time_elapsed}
                         ''')
         for epoch in range(init_epoch + 1, self.num_epochs + 1):
@@ -127,7 +127,7 @@ class Trainer:
                         self.plotter.plot_comparison_with_tensors(plot_title, path, labels,
                                                                   images, prediction, loss.item())
 
-            training_loss = training_loss / len(self.train_loader)
+            training_loss = training_loss / len(self.train_loader.dataset)
             training_errors[epoch] = training_loss
             validation_loss = self.validate(test, epoch, validation_logs_plots_path_prefix)
             validation_errors[epoch] = validation_loss
@@ -209,4 +209,4 @@ class Trainer:
                     LOG.info(f'''Saving validation image plot to path {path}''')
                     self.plotter.plot_comparison_with_tensors(plot_title, path, labels, images,
                                                               prediction, loss.item())
-        return validation_loss / len(self.val_loader)
+        return validation_loss / len(self.val_loader.dataset)

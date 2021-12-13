@@ -37,6 +37,8 @@ class MatlabValidator:
         Local execution: {np.array(list(validation_errors.values())).mean():.2E} vs. Matlab execution: {matlab_validation_errors.mean():.2E} ''')
         LOG.info(f'''Testing mean error:
         Local execution: {np.array(list(testing_errors.values())).mean():.2E} vs. Matlab execution: {matlab_testing_errors.mean():.2E} ''')
+        LOG.info(f'''Testing standard deviation:
+                Local execution: {np.array(list(testing_errors.values())).std():.2E} vs. Matlab execution: {matlab_testing_errors.std():.2E} ''')
 
         matlab_training_errors = dict(enumerate(matlab_training_errors.flatten(), 1))
         matlab_validation_errors = dict(enumerate(matlab_validation_errors.flatten(), 1))
