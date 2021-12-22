@@ -39,7 +39,6 @@ class Trainer:
         else:
             self.batch_size = unet_parameters["batch_size"]
         self.accumulation_steps = unet_parameters["accumulation_steps"]
-        self.num_sub_batches = unet_parameters["num_sub_batches"]
         self.manual_seed = unet_parameters["manual_seed"]
         self.num_workers = unet_parameters["num_workers"]
         self.no_of_pixels = images_parameters["no_of_pixels"]
@@ -66,7 +65,6 @@ class Trainer:
         self.learning_rate = unet_parameters["learning_rate"]
         weight_decay = unet_parameters["weight_decay"]
         self.optimizer = optim.AdamW(self.unet.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
-        #self.optimizer = optim.SGD(self.unet.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
         self.criterion = nn.MSELoss()
         self.plotter = Plotter()
 
